@@ -9,40 +9,70 @@
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; background: #f8fafc; }
         .nav { background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
         .nav a { color: #2563eb; text-decoration: none; font-weight: 600; }
+        .nav .right { display: flex; align-items: center; gap: 16px; }
+        .nav .tier { font-size: 12px; padding: 4px 10px; border-radius: 12px; background: #dbeafe; color: #1e40af; font-weight: 600; text-transform: uppercase; }
         .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
-        .stat { background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .stat h4 { font-size: 14px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .stat { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .stat h4 { font-size: 13px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
         .stat .num { font-size: 32px; font-weight: 700; color: #2563eb; }
-        .grid { display: grid; grid-template-columns: 280px 1fr; gap: 24px; }
-        .sidebar { background: white; border-radius: 8px; border: 1px solid #e2e8f0; padding: 20px; height: fit-content; }
-        .sidebar h3 { font-size: 16px; margin-bottom: 16px; }
-        .source-item { padding: 12px; border-radius: 6px; background: #f8fafc; margin-bottom: 8px; }
+        .grid { display: grid; grid-template-columns: 300px 1fr; gap: 24px; }
+        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+        .sidebar { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; height: fit-content; }
+        .sidebar h3 { font-size: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .source-item { padding: 12px; border-radius: 8px; background: #f8fafc; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .source-item .name { font-weight: 600; font-size: 14px; }
         .source-item .type { font-size: 12px; color: #64748b; }
-        .btn { display: inline-block; padding: 8px 16px; border-radius: 6px; background: #2563eb; color: white; text-decoration: none; font-size: 14px; border: none; cursor: pointer; margin-top: 12px; }
-        .btn-sm { padding: 6px 12px; font-size: 12px; }
-        .leads { background: white; border-radius: 8px; border: 1px solid #e2e8f0; padding: 20px; }
-        .leads h3 { font-size: 16px; margin-bottom: 16px; }
-        .lead { padding: 16px; border-bottom: 1px solid #f1f5f9; }
+        .source-item .delete { color: #ef4444; cursor: pointer; font-size: 12px; opacity: 0; transition: opacity 0.2s; }
+        .source-item:hover .delete { opacity: 1; }
+        .btn { display: inline-block; padding: 10px 16px; border-radius: 8px; background: #2563eb; color: white; text-decoration: none; font-size: 14px; border: none; cursor: pointer; font-weight: 500; }
+        .btn:hover { background: #1d4ed8; }
+        .btn-sm { padding: 6px 12px; font-size: 13px; }
+        .btn-outline { background: white; color: #2563eb; border: 1px solid #2563eb; }
+        .btn-outline:hover { background: #eff6ff; }
+        .btn-danger { background: #ef4444; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-success { background: #22c55e; }
+        .btn-success:hover { background: #16a34a; }
+        .leads { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; }
+        .leads-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .leads h3 { font-size: 16px; }
+        .lead { padding: 16px; border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
+        .lead:hover { background: #f8fafc; }
         .lead:last-child { border-bottom: none; }
-        .lead h4 { font-size: 15px; margin-bottom: 4px; }
-        .lead p { font-size: 13px; color: #64748b; }
-        .lead .meta { font-size: 12px; color: #94a3b8; margin-top: 4px; }
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-left: 8px; }
+        .lead h4 { font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .lead p { font-size: 13px; color: #64748b; margin: 4px 0; }
+        .lead .meta { font-size: 12px; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; align-items: center; }
+        .lead .actions { display: flex; gap: 8px; margin-top: 8px; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
         .badge-new { background: #dcfce7; color: #166534; }
         .badge-job { background: #fef3c7; color: #92400e; }
         .badge-news { background: #dbeafe; color: #1e40af; }
         .badge-competitor { background: #f3e8ff; color: #6b21a8; }
+        .badge-cvr { background: #ecfdf5; color: #065f46; }
+        .status { font-size: 11px; padding: 2px 8px; border-radius: 12px; cursor: pointer; border: none; }
+        .status-new { background: #fef3c7; color: #92400e; }
+        .status-contacted { background: #dbeafe; color: #1e40af; }
+        .status-qualified { background: #dcfce7; color: #166534; }
+        .status-won { background: #ecfdf5; color: #065f46; }
+        .status-lost { background: #f1f5f9; color: #64748b; }
         form { margin-top: 16px; }
-        input, select { width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 8px; font-size: 14px; }
+        input, select { width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 8px; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: #2563eb; }
         .empty { text-align: center; padding: 48px; color: #94a3b8; }
+        .toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .limit-warning { background: #fef3c7; color: #92400e; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+        .score { font-size: 11px; font-weight: 700; color: #2563eb; background: #eff6ff; padding: 2px 8px; border-radius: 12px; }
     </style>
 </head>
 <body>
     <nav class="nav">
         <a href="/">📡 LeadRadar</a>
-        <span>{{ user.email }}</span>
+        <div class="right">
+            <span class="tier">{{ user.subscription_tier }}</span>
+            <span>{{ user.email }}</span>
+            <a href="/api/logout">Logout</a>
+        </div>
     </nav>
 
     <div class="container">
@@ -57,65 +87,152 @@
             </div>
             <div class="stat">
                 <h4>Sources</h4>
-                <div class="num">{{ sources|length }}</div>
+                <div class="num">{{ sources|length }} / {{ source_limit }}</div>
             </div>
             <div class="stat">
                 <h4>Plan</h4>
-                <div class="num">{{ user.subscription_tier.title() }}</div>
+                <div class="num" style="font-size: 18px; margin-top: 8px;">{{ user.subscription_tier.title() }}</div>
             </div>
         </div>
 
+        {% if not can_add_source %}
+        <div class="limit-warning">
+            <strong>Source limit reached.</strong> You're using {{ sources|length }} of {{ source_limit }} sources. 
+            <a href="/pricing" style="color: #92400e; text-decoration: underline;">Upgrade your plan</a> to add more.
+        </div>
+        {% endif %}
+
         <div class="grid">
             <div class="sidebar">
-                <h3>Your Sources</h3>
+                <h3>Sources <span style="font-size: 12px; color: #94a3b8; font-weight: 400;">{{ sources|length }}/{{ source_limit }}</span></h3>
                 {% for s in sources %}
                 <div class="source-item">
-                    <div class="name">{{ s.name }}</div>
-                    <div class="type">{{ s.source_type }} • {{ 'Active' if s.active else 'Paused' }}</div>
+                    <div>
+                        <div class="name">{{ s.name }}</div>
+                        <div class="type">{{ s.source_type }} • {{ 'Active' if s.active else 'Paused' }}</div>
+                    </div>
+                    <span class="delete" onclick="deleteSource({{ s.id }})" title="Delete">Delete</span>
                 </div>
                 {% endfor %}
 
+                {% if can_add_source %}
                 <h3 style="margin-top: 24px;">Add Source</h3>
                 <form action="/api/sources" method="post">
-                    <input type="text" name="name" placeholder="Source name" required>
+                    <input type="text" name="name" placeholder="Source name (e.g. Jobindex IT)" required>
                     <select name="source_type" required>
                         <option value="job">Job Postings</option>
                         <option value="news">News / RSS</option>
-                        <option value="competitor">Competitor</option>
-                        <option value="cvr">CVR (DK)</option>
+                        <option value="competitor">Competitor Website</option>
+                        <option value="cvr">CVR (DK Companies)</option>
                     </select>
-                    <input type="text" name="url" placeholder="URL (optional)">
-                    <input type="text" name="keywords" placeholder="Keywords (comma separated)">
+                    <input type="text" name="url" placeholder="URL (for competitor/news)">
+                    <input type="text" name="keywords" placeholder="Keywords: rengøring, it, konsulent">
                     <button type="submit" class="btn btn-sm">Add Source</button>
                 </form>
+                {% endif %}
 
-                <form action="/api/scrape-all" method="post" style="margin-top: 12px;">
-                    <button type="submit" class="btn btn-sm">Scrape All Now</button>
-                </form>
+                <div style="margin-top: 16px;">
+                    <button onclick="scrapeAll()" class="btn btn-sm btn-success">Scrape All Now</button>
+                    <a href="/api/leads/export" class="btn btn-sm btn-outline" style="margin-top: 8px;">Export CSV</a>
+                </div>
+
+                {% if user.subscription_tier == 'free' %}
+                <div style="margin-top: 24px; padding: 16px; background: #eff6ff; border-radius: 8px;">
+                    <p style="font-size: 13px; color: #1e40af; margin-bottom: 8px;"><strong>Need more sources?</strong></p>
+                    <a href="/pricing" class="btn btn-sm" style="width: 100%;">Upgrade to Pro</a>
+                </div>
+                {% endif %}
             </div>
 
             <div class="leads">
-                <h3>Recent Leads</h3>
+                <div class="leads-header">
+                    <h3>Recent Leads</h3>
+                    <div class="toolbar">
+                        <button onclick="sendReport()" class="btn btn-sm btn-outline">Send Report</button>
+                    </div>
+                </div>
+
                 {% if leads %}
                 {% for lead in leads %}
                 <div class="lead">
                     <h4>
                         {{ lead.title }}
                         <span class="badge badge-{{ lead.source.source_type if lead.source else 'new' }}">{{ lead.source.source_type if lead.source else 'new' }}</span>
+                        {% if lead.score > 0 %}<span class="score">{{ lead.score }} pts</span>{% endif %}
                     </h4>
-                    <p>{{ lead.description[:200] }}</p>
+                    <p>{{ lead.description[:250] }}</p>
                     <div class="meta">
-                        {{ lead.company }} • {{ lead.location or 'Unknown' }} • {{ lead.created_at.strftime('%Y-%m-%d') }}
+                        <span>{{ lead.company }}</span>
+                        <span>{{ lead.location or 'Unknown' }}</span>
+                        <span>{{ lead.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    </div>
+                    <div class="actions">
+                        {% if lead.url and lead.url != '#' %}
+                        <a href="{{ lead.url }}" target="_blank" class="btn btn-sm btn-outline">View Source</a>
+                        {% endif %}
+                        <select class="status status-{{ lead.status }}" onchange="updateStatus({{ lead.id }}, this.value)">
+                            <option value="new" {{ 'selected' if lead.status == 'new' }}>New</option>
+                            <option value="contacted" {{ 'selected' if lead.status == 'contacted' }}>Contacted</option>
+                            <option value="qualified" {{ 'selected' if lead.status == 'qualified' }}>Qualified</option>
+                            <option value="won" {{ 'selected' if lead.status == 'won' }}>Won</option>
+                            <option value="lost" {{ 'selected' if lead.status == 'lost' }}>Lost</option>
+                        </select>
                     </div>
                 </div>
                 {% endfor %}
                 {% else %}
                 <div class="empty">
-                    <p>No leads yet. Add a source and run a scrape to get started.</p>
+                    <p style="font-size: 18px; margin-bottom: 8px;">🔍 No leads yet</p>
+                    <p>Add a source and click "Scrape All Now" to find your first leads.</p>
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
+
+    <script>
+    async function deleteSource(id) {
+        if (!confirm('Delete this source?')) return;
+        await fetch(`/api/sources/${id}`, { method: 'DELETE' });
+        location.reload();
+    }
+
+    async function scrapeAll() {
+        const btn = document.querySelector('button[onclick="scrapeAll()"]');
+        btn.textContent = 'Scraping...';
+        btn.disabled = true;
+        try {
+            const resp = await fetch('/api/scrape-all', { method: 'POST' });
+            const data = await resp.json();
+            alert(`Scraped ${data.sources_scraped} sources. ${data.new_leads} new leads found.`);
+            location.reload();
+        } catch (e) {
+            alert('Error scraping. Try again.');
+            btn.textContent = 'Scrape All Now';
+            btn.disabled = false;
+        }
+    }
+
+    async function sendReport() {
+        const btn = document.querySelector('button[onclick="sendReport()"]');
+        btn.textContent = 'Sending...';
+        try {
+            const resp = await fetch('/api/send-report', { method: 'POST' });
+            const data = await resp.json();
+            alert(data.status === 'sent' ? `Report sent with ${data.leads} leads!` : data.status);
+        } catch (e) {
+            alert('Error sending report.');
+        }
+        btn.textContent = 'Send Report';
+    }
+
+    async function updateStatus(leadId, status) {
+        await fetch(`/api/leads/${leadId}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `status=${status}`
+        });
+    }
+    </script>
 </body>
 </html>

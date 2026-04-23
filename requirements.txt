@@ -11,3 +11,8 @@ alembic
 httpx
 python-multipart
 email-validator
+stripe
+itsdangerous
+python-jose
+passlib
+bcrypt

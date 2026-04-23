@@ -6,7 +6,7 @@ import os
 
 Base = declarative_base()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./leadradar.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/leadradar.db")
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -14,13 +14,17 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
+    password_hash = Column(String, nullable=True)
     stripe_customer_id = Column(String, nullable=True)
+    stripe_subscription_id = Column(String, nullable=True)
     subscription_tier = Column(String, default="free")  # free, pro, agency
+    subscription_status = Column(String, default="active")  # active, canceled, past_due
     created_at = Column(DateTime, default=datetime.utcnow)
     active = Column(Boolean, default=True)
+    email_confirmed = Column(Boolean, default=False)
     
-    sources = relationship("Source", back_populates="user")
-    leads = relationship("Lead", back_populates="user")
+    sources = relationship("Source", back_populates="user", cascade="all, delete-orphan")
+    leads = relationship("Lead", back_populates="user", cascade="all, delete-orphan")
 
 class Source(Base):
     __tablename__ = "sources"
@@ -29,7 +33,7 @@ class Source(Base):
     name = Column(String)
     source_type = Column(String)  # cvr, job, news, competitor
     url = Column(String)
-    config = Column(Text, default="{}")  # JSON config
+    config = Column(Text, default="{}")
     last_scraped = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     active = Column(Boolean, default=True)
@@ -48,23 +52,12 @@ class Lead(Base):
     contact_email = Column(String, nullable=True)
     phone = Column(String, nullable=True)
     location = Column(String, nullable=True)
-    status = Column(String, default="new")  # new, contacted, qualified, won, lost
+    status = Column(String, default="new")
     score = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
     notified = Column(Boolean, default=False)
     
     user = relationship("User", back_populates="leads")
-
-class CompetitorSnapshot(Base):
-    __tablename__ = "competitor_snapshots"
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    competitor_name = Column(String)
-    url = Column(String)
-    price = Column(String, nullable=True)
-    description = Column(Text, nullable=True)
-    changes = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
 
 def init_db():
     Base.metadata.create_all(bind=engine)

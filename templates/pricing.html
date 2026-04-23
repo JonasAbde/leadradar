@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing — LeadRadar</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #1e293b; }
+        .nav { background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .nav a { color: #2563eb; text-decoration: none; font-weight: 600; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 64px 24px; }
+        h1 { text-align: center; font-size: 36px; margin-bottom: 8px; }
+        .subtitle { text-align: center; color: #64748b; margin-bottom: 48px; font-size: 18px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+        .plan { background: white; padding: 32px; border-radius: 16px; border: 2px solid #e2e8f0; transition: border-color 0.2s, transform 0.2s; }
+        .plan:hover { border-color: #2563eb; transform: translateY(-4px); }
+        .plan.featured { border-color: #2563eb; position: relative; }
+        .badge-popular { position: absolute; top: -12px; right: 16px; background: #2563eb; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .plan h3 { font-size: 20px; margin-bottom: 8px; }
+        .price { font-size: 42px; font-weight: 700; color: #1e293b; margin: 16px 0; }
+        .price span { font-size: 16px; color: #64748b; font-weight: 400; }
+        .plan ul { list-style: none; margin: 24px 0; }
+        .plan li { padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 15px; color: #475569; }
+        .plan li::before { content: "✓"; color: #22c55e; margin-right: 8px; font-weight: 700; }
+        .btn { display: block; text-align: center; padding: 14px; background: #2563eb; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background 0.2s; }
+        .btn:hover { background: #1d4ed8; }
+        .btn-outline { background: white; color: #2563eb; border: 2px solid #2563eb; }
+        .btn-outline:hover { background: #eff6ff; }
+        .compare { max-width: 800px; margin: 64px auto; }
+        .compare h2 { text-align: center; font-size: 28px; margin-bottom: 32px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { font-weight: 600; color: #64748b; font-size: 14px; text-transform: uppercase; }
+        td:first-child { font-weight: 500; }
+        .check { color: #22c55e; font-weight: 700; }
+        .cross { color: #cbd5e1; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/">📡 LeadRadar</a>
+        <div>
+            <a href="/login" style="margin-right: 16px;">Sign In</a>
+            <a href="/register">Get Started</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Simple, transparent pricing</h1>
+        <p class="subtitle">Start free. Upgrade when you need more power.</p>
+
+        <div class="grid">
+            <div class="plan">
+                <h3>Free</h3>
+                <div class="price">0 kr<span>/mo</span></div>
+                <ul>
+                    <li>1 lead source</li>
+                    <li>Daily checks</li>
+                    <li>7-day history</li>
+                    <li>Email reports</li>
+                    <li>Basic dashboard</li>
+                </ul>
+                <a href="/register" class="btn btn-outline">Get Started Free</a>
+            </div>
+
+            <div class="plan featured">
+                <div class="badge-popular">MOST POPULAR</div>
+                <h3>Pro</h3>
+                <div class="price">149 kr<span>/mo</span></div>
+                <ul>
+                    <li>10 lead sources</li>
+                    <li>Hourly checks</li>
+                    <li>90-day history</li>
+                    <li>CSV export</li>
+                    <li>API access</li>
+                    <li>Priority support</li>
+                </ul>
+                {% if user %}
+                <a href="#" onclick="upgrade('pro')" class="btn">Upgrade to Pro</a>
+                {% else %}
+                <a href="/register" class="btn">Start Pro Trial</a>
+                {% endif %}
+            </div>
+
+            <div class="plan">
+                <h3>Agency</h3>
+                <div class="price">399 kr<span>/mo</span></div>
+                <ul>
+                    <li>50 lead sources</li>
+                    <li>Hourly checks</li>
+                    <li>Unlimited history</li>
+                    <li>White-label reports</li>
+                    <li>API access</li>
+                    <li>Priority support</li>
+                </ul>
+                {% if user %}
+                <a href="#" onclick="upgrade('agency')" class="btn btn-outline">Upgrade to Agency</a>
+                {% else %}
+                <a href="/register" class="btn btn-outline">Start Agency Trial</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="compare">
+            <h2>Compare plans</h2>
+            <table>
+                <tr><th>Feature</th><th>Free</th><th>Pro</th><th>Agency</th></tr>
+                <tr><td>Lead sources</td><td>1</td><td>10</td><td>50</td></tr>
+                <tr><td>Check frequency</td><td>Daily</td><td>Hourly</td><td>Hourly</td></tr>
+                <tr><td>History</td><td>7 days</td><td>90 days</td><td>Unlimited</td></tr>
+                <tr><td>Email reports</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+                <tr><td>CSV export</td><td class="cross">✗</td><td class="check">✓</td><td class="check">✓</td></tr>
+                <tr><td>API access</td><td class="cross">✗</td><td class="check">✓</td><td class="check">✓</td></tr>
+                <tr><td>White-label</td><td class="cross">✗</td><td class="cross">✗</td><td class="check">✓</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+    async function upgrade(tier) {
+        try {
+            const resp = await fetch(`/api/create-checkout-session?tier=${tier}`);
+            const data = await resp.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                alert('Stripe is not configured yet. Contact support.');
+            }
+        } catch (e) {
+            alert('Stripe is not configured yet. Contact support.');
+        }
+    }
+    </script>
+</body>
+</html>
