@@ -1,0 +1,16 @@
+[Unit]
+Description=LeadRadar SMB Lead Intelligence
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/leadradar
+Environment=PATH=/home/ubuntu/leadradar/venv/bin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/ubuntu/leadradar/venv/bin/python run.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
