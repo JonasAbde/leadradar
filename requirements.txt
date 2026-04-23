@@ -9,3 +9,5 @@ pydantic
 python-dotenv
 alembic
 httpx
+python-multipart
+email-validator
