@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeadRadar — Automated Lead Intelligence for SMBs</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; line-height: 1.6; }
+        .hero { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: white; padding: 100px 20px; text-align: center; }
+        .hero h1 { font-size: 48px; margin-bottom: 16px; }
+        .hero p { font-size: 20px; opacity: 0.9; margin-bottom: 32px; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .cta { display: inline-block; background: white; color: #2563eb; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; }
+        .features { padding: 80px 20px; max-width: 1000px; margin: 0 auto; }
+        .features h2 { text-align: center; font-size: 32px; margin-bottom: 48px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; }
+        .feature { padding: 24px; border-radius: 12px; background: #f8fafc; }
+        .feature h3 { font-size: 20px; margin-bottom: 8px; color: #2563eb; }
+        .feature p { color: #64748b; }
+        .pricing { padding: 80px 20px; background: #f1f5f9; }
+        .pricing h2 { text-align: center; font-size: 32px; margin-bottom: 48px; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto; }
+        .plan { background: white; padding: 32px; border-radius: 12px; text-align: center; }
+        .plan h3 { font-size: 20px; margin-bottom: 8px; }
+        .price { font-size: 36px; font-weight: 700; color: #2563eb; margin: 16px 0; }
+        .plan ul { list-style: none; text-align: left; margin: 24px 0; }
+        .plan li { padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+        .plan .cta { background: #2563eb; color: white; }
+        footer { text-align: center; padding: 40px; color: #94a3b8; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <h1>📡 LeadRadar</h1>
+        <p>Autonomous lead intelligence for Danish SMBs. We monitor CVR, job postings, news, and competitors — so you never miss an opportunity.</p>
+        <a href="/dashboard" class="cta">Start Free — No Credit Card</a>
+    </section>
+
+    <section class="features">
+        <h2>How it works</h2>
+        <div class="grid">
+            <div class="feature">
+                <h3>1. Set Your Sources</h3>
+                <p>Choose what to monitor: job postings, competitor websites, CVR registrations, or news mentions.</p>
+            </div>
+            <div class="feature">
+                <h3>2. We Scrape Daily</h3>
+                <p>Our agents check your sources every day. New leads are scored, deduplicated, and stored.</p>
+            </div>
+            <div class="feature">
+                <h3>3. Get Email Reports</h3>
+                <p>Wake up to a curated list of new leads in your inbox. Click to view details or export.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="pricing">
+        <h2>Simple Pricing</h2>
+        <div class="pricing-grid">
+            <div class="plan">
+                <h3>Free</h3>
+                <div class="price">0 kr</div>
+                <ul>
+                    <li>1 source</li>
+                    <li>Daily email report</li>
+                    <li>7-day history</li>
+                </ul>
+                <a href="/dashboard" class="cta">Get Started</a>
+            </div>
+            <div class="plan">
+                <h3>Pro</h3>
+                <div class="price">149 kr/mo</div>
+                <ul>
+                    <li>10 sources</li>
+                    <li>Hourly checks</li>
+                    <li>90-day history</li>
+                    <li>API access</li>
+                </ul>
+                <a href="/dashboard" class="cta">Start Pro</a>
+            </div>
+            <div class="plan">
+                <h3>Agency</h3>
+                <div class="price">399 kr/mo</div>
+                <ul>
+                    <li>50 sources</li>
+                    <li>White-label reports</li>
+                    <li>Unlimited history</li>
+                    <li>Priority support</li>
+                </ul>
+                <a href="/dashboard" class="cta">Start Agency</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        Built by TekUp ¹ LeadRadar 2026
+    </footer>
+</body>
+</html>
