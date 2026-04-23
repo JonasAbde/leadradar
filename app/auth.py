@@ -1,4 +1,4 @@
-from passlib.context import CryptContext
+import bcrypt
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from fastapi import Depends, HTTPException, Request
@@ -11,14 +11,20 @@ SECRET_KEY = os.getenv("SECRET_KEY", "change-me-in-production-32-chars-long!")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 30
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer(auto_error=False)
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    """Hash password using bcrypt with proper encoding"""
+    password_bytes = password.encode('utf-8')[:72]  # bcrypt limit
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    return hashed.decode('utf-8')
 
 def verify_password(password: str, hashed: str) -> bool:
-    return pwd_context.verify(password, hashed)
+    """Verify password against bcrypt hash"""
+    password_bytes = password.encode('utf-8')[:72]
+    hashed_bytes = hashed.encode('utf-8')
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 def create_access_token(user_id: int) -> str:
     expire = datetime.utcnow() + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
