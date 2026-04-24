@@ -25,14 +25,20 @@ Priority: HIGHEST | Impact: Data accuracy + lead value
 - Tested: 3/3 leads enriched successfully
 - Commits: 9d5b804, 59ee3f4
 
-## Phase 3: CRM Integration (IN PROGRESS)
+## Phase 3: CRM Integration ✅ DONE
 Priority: HIGH | Impact: Product stickiness
 - Chunk 1 ✅: CRM abstraction layer (mock provider, models, migrations)
-- Chunk 2: HubSpot adapter (env token, idempotency, no hardcoded secrets)
-- Chunk 3: Sync queue/worker (retry, backoff, resumable)
-- Chunk 4: Dashboard UI (CRM buttons, status badges, settings)
-- Chunk 5: Tests (mock integration, idempotency, lint)
-- Blocked: HubSpot private app token (Jonas), Pipedrive OAuth (Jonas)
+- Chunk 2 ✅: HubSpot adapter (env token, idempotency, no hardcoded secrets)
+- Chunk 3 ✅: Sync queue/worker (retry, backoff, resumable)
+- Chunk 4 ✅: Dashboard UI (CRM buttons, status badges, settings)
+- Chunk 5 ✅: Tests (mock integration, idempotency, lint)
+- Commits: 42a45a4, eebf1dc, 47c0527
+
+## Phase 3b: Real-Time Alerts (READY)
+Priority: HIGH | Impact: Product stickiness
+- Instant email alerts on new leads
+- Slack webhook integration
+- Blocked: SMTP credentials (Jonas)
 
 ## Phase 4: Payments
 Priority: HIGH | Impact: Revenue

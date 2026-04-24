@@ -1,4 +1,4 @@
-"""LeadRadar test suite — Fase 4"""
+"""LeadRadar test suite — Fase 5: CRM + Enrichment"""
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
@@ -7,7 +7,7 @@ client = TestClient(app)
 
 # ─── AUTH ───
 def test_register_invalid_email():
-    r = client.post("/api/register", data={"email": "bad", "password": "testpass123"})
+    r = client.post("/api/register", data={"email": "bad", "password": "***"})
     assert r.status_code == 400
     assert "Invalid email" in r.json()["detail"]
 
@@ -16,17 +16,15 @@ def test_register_short_password():
     assert r.status_code == 400
 
 def test_register_and_login():
-    # Use unique email
     import uuid
     email = f"test_{uuid.uuid4().hex[:8]}@x.co"
-    r = client.post("/api/register", data={"email": email, "password": "testpass123"})
+    r = client.post("/api/register", data={"email": email, "password": "***"})
     assert r.status_code == 303
-    # Login
-    r = client.post("/api/login", data={"email": email, "password": "testpass123"})
+    r = client.post("/api/login", data={"email": email, "password": "***"})
     assert r.status_code == 303
 
 def test_login_wrong_password():
-    r = client.post("/api/login", data={"email": "test@leadradar.dk", "password": "wrong"})
+    r = client.post("/api/login", data={"email": "test@leadradar.dk", "password": "***"})
     assert r.status_code == 401
 
 def test_dashboard_without_auth():
@@ -46,3 +44,64 @@ def test_cvr_scraper_runs():
     scraper = CVRScraper(FakeSource())
     results = scraper.scrape()
     assert isinstance(results, list)
+
+# ─── CRM MOCK PROVIDER ───
+def test_mock_crm_provider_basic():
+    from app.crm.mock_provider import MockCRMProvider
+    from app.crm import LeadData
+    
+    provider = MockCRMProvider()
+    assert provider.test_connection() is True
+    
+    lead = LeadData(
+        id=1,
+        title="Test Lead",
+        company="TestCo",
+        email="admin@testco.dk",
+        phone="12345678",
+        cvr_number="12345678",
+        score=50
+    )
+    result = provider.sync_lead(lead)
+    assert result.success is True
+    assert result.company_id is not None
+    assert result.lead_id is not None
+
+def test_mock_crm_provider_idempotency():
+    """Same lead synced twice must not create duplicates."""
+    from app.crm.mock_provider import MockCRMProvider
+    from app.crm import LeadData
+    
+    provider = MockCRMProvider()
+    lead = LeadData(
+        id=42,
+        title="Dup Test",
+        company="DupCo",
+        cvr_number="87654321",
+    )
+    
+    r1 = provider.sync_lead(lead)
+    r2 = provider.sync_lead(lead)
+    
+    assert r1.company_id == r2.company_id, "Company ID should match on retry"
+    assert r1.lead_id == r2.lead_id, "Lead ID should match on retry"
+    assert len(provider.companies) == 1
+    assert len(provider.leads) == 1
+
+def test_mock_crm_provider_no_contact_data():
+    """Lead with no email/phone should skip contact gracefully."""
+    from app.crm.mock_provider import MockCRMProvider
+    from app.crm import LeadData
+    
+    provider = MockCRMProvider()
+    lead = LeadData(
+        id=3,
+        title="No Contact",
+        company="GhostCo",
+        email=None,
+        phone=None,
+        owner_name=None,
+    )
+    result = provider.sync_lead(lead)
+    assert result.success is True  # Company still created
+    assert len(provider.contacts) == 0
