@@ -38,6 +38,7 @@ def create_alert(
     lead_id: Optional[int] = None,
     link_path: Optional[str] = None,
     severity: str = "info",
+    commit: bool = True,
 ) -> models.Alert:
     alert = models.Alert(
         user_id=user_id,
@@ -49,8 +50,9 @@ def create_alert(
         severity=severity,
     )
     db.add(alert)
-    db.commit()
-    db.refresh(alert)
+    if commit:
+        db.commit()
+        db.refresh(alert)
     return alert
 
 
@@ -58,6 +60,7 @@ def dispatch_alert(
     db,
     alert: models.Alert,
     base_url: str = "http://57.128.215.250:8000",
+    commit: bool = True,
 ):
     """Dispatch alert to configured channels."""
     prefs = get_or_create_prefs(db, alert.user_id)
@@ -77,7 +80,8 @@ def dispatch_alert(
                 link=f"{base_url}{alert.link_path or '/dashboard'}",
             )
             alert.sent_email = sent
-            db.commit()
+            if commit:
+                db.commit()
         except Exception as e:
             logger.error(f"Email dispatch failed: {e}")
 
@@ -90,7 +94,8 @@ def dispatch_alert(
                 base_url,
             )
             alert.sent_slack = sent
-            db.commit()
+            if commit:
+                db.commit()
         except Exception as e:
             logger.error(f"Slack dispatch failed: {e}")
 

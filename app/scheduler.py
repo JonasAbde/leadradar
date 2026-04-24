@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from . import models
 from .scrapers import get_scraper
 from .mail import send_daily_report
+from .alert_dispatcher import create_alert, dispatch_alert
 from datetime import datetime
 import requests
 
@@ -38,6 +39,16 @@ def run_all_scrapes():
                             location=r.get("location", "")
                         )
                         db.add(lead)
+                        db.flush()
+                        alert = create_alert(
+                            db, user_id=source.user_id,
+                            source_type="lead", event="new_lead",
+                            message=f"Ny lead fundet: {lead.title}",
+                            lead_id=lead.id,
+                            link_path=f"/dashboard?lead={lead.id}",
+                            commit=False,
+                        )
+                        dispatch_alert(db, alert, commit=False)
                         total_new += 1
                 
                 source.last_scraped = datetime.utcnow()

@@ -292,6 +292,16 @@ def trigger_scrape(
                 score=r.get("score", 0)
             )
             db.add(lead)
+            db.flush()
+            alert = create_alert(
+                db, user_id=user.id,
+                source_type="lead", event="new_lead",
+                message=f"Ny lead: {lead.title}",
+                lead_id=lead.id,
+                link_path=f"/dashboard?lead={lead.id}",
+                commit=False,
+            )
+            dispatch_alert(db, alert, commit=False)
             leads_created += 1
     
     source.last_scraped = datetime.utcnow()
@@ -360,6 +370,16 @@ def scrape_all(
                     logger.warning(f"Enrichment failed for {lead.company}: {e}")
                 
                 db.add(lead)
+                db.flush()
+                alert = create_alert(
+                    db, user_id=user.id,
+                    source_type="lead", event="new_lead",
+                    message=f"Ny lead: {lead.title}",
+                    lead_id=lead.id,
+                    link_path=f"/dashboard?lead={lead.id}",
+                    commit=False,
+                )
+                dispatch_alert(db, alert, commit=False)
                 total_new += 1
         
         source.last_scraped = datetime.utcnow()
