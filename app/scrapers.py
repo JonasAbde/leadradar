@@ -5,6 +5,37 @@ from datetime import datetime
 from typing import List, Dict
 import httpx
 import re
+import random, time, urllib.robotparser
+from urllib.parse import urlparse
+
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+]
+_robots_cache = {}
+
+def _get_headers():
+    return {"User-Agent": random.choice(USER_AGENTS), "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"}
+
+def _can_fetch(url):
+    try:
+        parsed = urlparse(url)
+        domain = f"{parsed.scheme}://{parsed.netloc}"
+        if domain not in _robots_cache:
+            rp = urllib.robotparser.RobotFileParser()
+            rp.set_url(f"{domain}/robots.txt")
+            rp.read()
+            _robots_cache[domain] = rp
+        return _robots_cache[domain].can_fetch("*", url)
+    except Exception:
+        return True
+
+def _polite_get(url, **kwargs):
+    if not _can_fetch(url):
+        print(f"[BLOCKED by robots.txt] {url}")
+        return None
+    time.sleep(0.5)
+    return requests.get(url, headers=_get_headers(), timeout=15, **kwargs)
 
 class BaseScraper:
     def __init__(self, source):
@@ -26,7 +57,7 @@ class CVRScraper(BaseScraper):
             try:
                 url = f"https://datacvr.virk.dk/data/visenhed?enhedstype=virksomhed&soeg={keyword}&oprettetfra=&sideIndex=0&size=10"
                 headers = {"User-Agent": "LeadRadar/1.0 (Research Tool)"}
-                resp = requests.get(url, headers=headers, timeout=15)
+                resp = _polite_get(url)
                 
                 if resp.status_code == 200:
                     soup = BeautifulSoup(resp.text, "html.parser")

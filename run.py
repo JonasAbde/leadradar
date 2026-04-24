@@ -1,4 +1,7 @@
 import uvicorn
+from dotenv import load_dotenv
+load_dotenv()
+
 from app.main import app
 from app.scheduler import init_scheduler
 from app.models import init_db

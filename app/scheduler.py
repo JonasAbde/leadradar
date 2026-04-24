@@ -3,7 +3,7 @@ from apscheduler.triggers.cron import CronTrigger
 from sqlalchemy.orm import Session
 from . import models
 from .scrapers import get_scraper
-from .email import send_daily_report
+from .mail import send_daily_report
 from datetime import datetime
 import requests
 

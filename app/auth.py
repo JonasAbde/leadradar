@@ -7,9 +7,16 @@ from sqlalchemy.orm import Session
 from . import models
 import os
 
-SECRET_KEY = os.getenv("SECRET_KEY", "change-me-in-production-32-chars-long!")
+SECRET_KEY = os.getenv("SECRET_KEY", "")
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY environment variable is required. Set it in .env or run: export SECRET_KEY=$(openssl rand -hex 32)")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_DAYS = 30
+ACCESS_TOKEN_EXPIRE_DAYS = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS", "7"))
+
+# Password policy
+MIN_PASSWORD_LENGTH = 8
+
+import re as _re
 
 security = HTTPBearer(auto_error=False)
 
@@ -25,6 +32,14 @@ def verify_password(password: str, hashed: str) -> bool:
     password_bytes = password.encode('utf-8')[:72]
     hashed_bytes = hashed.encode('utf-8')
     return bcrypt.checkpw(password_bytes, hashed_bytes)
+
+def validate_password(password: str) -> str | None:
+    """Validate password strength. Returns error message or None if valid."""
+    if len(password) > 72:
+        return "Password must be at most 72 characters (bcrypt limit)."
+    if len(password) == 0:
+        return "Password is required."
+    return None
 
 def create_access_token(user_id: int) -> str:
     expire = datetime.utcnow() + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)

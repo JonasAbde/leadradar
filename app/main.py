@@ -8,17 +8,43 @@ import os
 import json
 import csv
 import io
+import logging
+import html
+
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from . import models
 from .auth import (
     get_current_user, get_current_user_optional,
-    hash_password, verify_password, create_access_token
+    hash_password, verify_password, create_access_token, validate_password
 )
 from .scrapers import get_scraper
-from .email import send_daily_report
+from .mail import send_daily_report
 from .stripe_config import get_checkout_session_url, handle_webhook, SUBSCRIPTION_LIMITS
 
 app = FastAPI(title="LeadRadar", description="Autonomous lead monitoring for SMBs")
+
+# Rate limiting
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Logging setup
+logger = logging.getLogger("leadradar")
+handler = logging.StreamHandler()
+formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+handler.setFormatter(formatter)
+if not logger.handlers:
+    logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+
+# Security helpers
+def sanitize_source_name(name: str) -> str:
+    """Strip HTML tags and limit length for source names."""
+    name = html.escape(name.strip())
+    return name[:100]
 
 # Templates
 templates = Jinja2Templates(directory="templates")
@@ -55,12 +81,27 @@ def register_page(request: Request):
 # ============== AUTH API ==============
 
 @app.post("/api/register")
+@limiter.limit("5/minute")
 def register(
     request: Request,
     email: str = Form(...),
     password: str = Form(...),
     db: Session = Depends(models.get_db)
 ):
+    from email_validator import validate_email, EmailNotValidError
+    
+    # Validate email format
+    try:
+        email_info = validate_email(email.strip(), check_deliverability=False)
+        email = email_info.normalized
+    except EmailNotValidError:
+        raise HTTPException(400, "Invalid email address")
+    
+    # Validate password
+    pw_error = validate_password(password)
+    if pw_error:
+        raise HTTPException(400, pw_error)
+    
     # Check if user exists
     existing = db.query(models.User).filter(models.User.email == email).first()
     if existing:
@@ -74,14 +115,20 @@ def register(
     db.add(user)
     db.commit()
     db.refresh(user)
+    logger.info(f"New user registered: {email}")
     
     # Create token and redirect
     token = create_access_token(user.id)
     response = RedirectResponse("/dashboard", status_code=303)
-    response.set_cookie(key="access_token", value=token, httponly=True, max_age=60*60*24*30)
+    secure_cookie = os.getenv("HTTPS_ENABLED", "").lower() == "true"
+    response.set_cookie(
+        key="access_token", value=token, httponly=True,
+        max_age=60*60*24*30, secure=secure_cookie, samesite="lax"
+    )
     return response
 
 @app.post("/api/login")
+@limiter.limit("10/minute")
 def login(
     request: Request,
     email: str = Form(...),
@@ -90,11 +137,17 @@ def login(
 ):
     user = db.query(models.User).filter(models.User.email == email).first()
     if not user or not verify_password(password, user.password_hash):
+        logger.warning(f"Failed login attempt for {email} from {request.client.host if request.client else 'unknown'}")
         raise HTTPException(401, "Invalid credentials")
     
     token = create_access_token(user.id)
     response = RedirectResponse("/dashboard", status_code=303)
-    response.set_cookie(key="access_token", value=token, httponly=True, max_age=60*60*24*30)
+    secure_cookie = os.getenv("HTTPS_ENABLED", "").lower() == "true"
+    response.set_cookie(
+        key="access_token", value=token, httponly=True,
+        max_age=60*60*24*30, secure=secure_cookie, samesite="lax"
+    )
+    logger.info(f"User logged in: {email}")
     return response
 
 @app.get("/api/logout")
@@ -139,7 +192,9 @@ def dashboard(
 # ============== API ENDPOINTS ==============
 
 @app.post("/api/sources")
+@limiter.limit("20/minute")
 def create_source(
+    request: Request,
     name: str = Form(...),
     source_type: str = Form(...),
     url: str = Form(""),
@@ -157,7 +212,7 @@ def create_source(
     
     source = models.Source(
         user_id=user.id,
-        name=name,
+        name=sanitize_source_name(name),
         source_type=source_type,
         url=url,
         config=config
@@ -165,6 +220,7 @@ def create_source(
     db.add(source)
     db.commit()
     db.refresh(source)
+    logger.info(f"User {user.id} created source '{source.name}'")
     
     return {"status": "ok", "source_id": source.id}
 
@@ -183,6 +239,7 @@ def delete_source(
     
     db.delete(source)
     db.commit()
+    logger.info(f"User {user.id} deleted source {source_id}")
     return {"status": "deleted"}
 
 @app.get("/api/sources")
@@ -197,7 +254,9 @@ def list_sources(
     ]}
 
 @app.post("/api/scrape/{source_id}")
+@limiter.limit("30/minute")
 def trigger_scrape(
+    request: Request,
     source_id: int,
     user: models.User = Depends(get_current_user),
     db: Session = Depends(models.get_db)
@@ -235,11 +294,14 @@ def trigger_scrape(
     
     source.last_scraped = datetime.utcnow()
     db.commit()
+    logger.info(f"User {user.id} scraped source {source_id}: {len(results)} results, {leads_created} new leads")
     
     return {"scraped": len(results), "new_leads": leads_created}
 
 @app.post("/api/scrape-all")
+@limiter.limit("10/minute")
 def scrape_all(
+    request: Request,
     user: models.User = Depends(get_current_user),
     db: Session = Depends(models.get_db)
 ):
@@ -276,6 +338,7 @@ def scrape_all(
         source.last_scraped = datetime.utcnow()
     
     db.commit()
+    logger.info(f"User {user.id} scrape-all: {len(sources)} sources, {total_new} new leads")
     return {"sources_scraped": len(sources), "new_leads": total_new}
 
 @app.post("/api/leads/{lead_id}/status")
@@ -358,7 +421,8 @@ def send_report(
     db.commit()
     
     if user.email:
-        success = send_daily_report(user.email, lead_data, f"http://57.128.215.250:8000/dashboard")
+        base_url = os.getenv("PUBLIC_BASE_URL", "http://57.128.215.250:8000")
+        success = send_daily_report(user.email, lead_data, f"{base_url}/dashboard")
         return {"status": "sent" if success else "failed", "leads": len(lead_data)}
     
     return {"status": "no email configured"}
@@ -366,21 +430,42 @@ def send_report(
 # ============== STRIPE ==============
 
 @app.get("/api/create-checkout-session")
+@limiter.limit("10/minute")
 def create_checkout(
+    request: Request,
     tier: str,
     user: models.User = Depends(get_current_user)
 ):
     if tier not in ["pro", "agency"]:
         raise HTTPException(400, "Invalid tier")
     
+    # Graceful degradation if Stripe not configured
+    stripe_key = os.getenv("STRIPE_SECRET_KEY", "")
+    if not stripe_key:
+        return JSONResponse(
+            status_code=200,
+            content={
+                "status": "mock",
+                "message": "Stripe is not configured yet. Contact support to upgrade.",
+                "tier": tier,
+                "price_dkk": 99 if tier == "pro" else 499
+            }
+        )
+    
     try:
         url = get_checkout_session_url(user.email, tier)
         return {"url": url}
     except Exception as e:
+        logger.error(f"Stripe checkout error: {e}")
         raise HTTPException(500, str(e))
 
 @app.post("/api/stripe-webhook")
+@limiter.limit("20/minute")
 def stripe_webhook(request: Request):
+    stripe_key = os.getenv("STRIPE_SECRET_KEY", "")
+    if not stripe_key:
+        return {"status": "mock", "message": "Stripe not configured"}
+    
     payload = request.body()
     sig_header = request.headers.get("stripe-signature")
     
