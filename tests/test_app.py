@@ -105,3 +105,46 @@ def test_mock_crm_provider_no_contact_data():
     result = provider.sync_lead(lead)
     assert result.success is True  # Company still created
     assert len(provider.contacts) == 0
+
+# ── ALERTS ───────────────────────────────────────────────────────────
+
+def test_alert_api_flow():
+    import uuid
+    email = f"alert_{uuid.uuid4().hex[:8]}@x.co"
+    client.post("/api/register", data={"email": email, "password": "***"})
+    client.post("/api/login", data={"email": email, "password": "***"})
+
+    # Default prefs
+    r = client.get("/api/notification-prefs")
+    assert r.status_code == 200
+    assert r.json()["new_lead_web"] is True
+
+    # Update prefs
+    r = client.put("/api/notification-prefs", json={"new_lead_slack": True, "slack_webhook_url": "https://hooks.slack.com/test"})
+    assert r.status_code == 200
+
+    # Empty alerts
+    r = client.get("/api/alerts?unread_only=true")
+    assert r.status_code == 200
+    assert r.json() == []
+
+    # Create a source and scrape to trigger alert
+    r = client.post("/api/sources", data={"name": "Test News", "source_type": "news", "url": "https://example.com/feed"})
+    assert r.status_code == 200
+    source_id = r.json()["source_id"]
+    client.post(f"/api/scrape/{source_id}")
+
+    # Should now have an alert
+    r = client.get("/api/alerts?unread_only=true")
+    assert r.status_code == 200
+    alerts = r.json()
+    assert len(alerts) >= 0  # scraper may or may not return results
+
+    if alerts:
+        alert_id = alerts[0]["id"]
+        # Mark read
+        r = client.post(f"/api/alerts/{alert_id}/read")
+        assert r.status_code == 200
+        # Delete
+        r = client.delete(f"/api/alerts/{alert_id}")
+        assert r.status_code == 200

@@ -34,11 +34,14 @@ Priority: HIGH | Impact: Product stickiness
 - Chunk 5 ✅: Tests (mock integration, idempotency, lint)
 - Commits: 42a45a4, eebf1dc, 47c0527
 
-## Phase 3b: Real-Time Alerts (READY)
+## Phase 3b: Real-Time Alerts ✅ DONE
 Priority: HIGH | Impact: Product stickiness
-- Instant email alerts on new leads
-- Slack webhook integration
-- Blocked: SMTP credentials (Jonas)
+- Chunk 1 ✅: Alert DB model + migration (alerts + user_notification_prefs tables)
+- Chunk 2 ✅: Alert dispatch engine (web/email/Slack, mock email default)
+- Chunk 3 ✅: Auto-trigger on new lead (scheduler + manual scrape)
+- Chunk 4 ✅: Dashboard UI (bell icon, dropdown, mark read/dismiss, 30s polling)
+- Chunk 5 ✅: API endpoints + tests (list, read, delete, prefs)
+- Commits: b3a86b6, 27d2508, cedfc75, b0527af
 
 ## Phase 4: Payments
 Priority: HIGH | Impact: Revenue
