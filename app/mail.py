@@ -93,3 +93,39 @@ def send_daily_report(to_email: str, leads: list, dashboard_url: str = "#"):
     except Exception as e:
         print(f"Email error: {e}")
         return False
+
+
+def send_instant_alert_email(to_email: str, subject: str, body: str, link: str = "#"):
+    """Send instant alert email. Falls back to stdout if SMTP not configured."""
+    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER")
+    smtp_pass = os.getenv("SMTP_PASS")
+
+    if not smtp_user or not smtp_pass:
+        print(f"[ALERT EMAIL — MOCK] To: {to_email} | Subject: {subject} | Link: {link}")
+        print(f"  Body: {body[:120]}...")
+        return False
+
+    try:
+        html = f"""
+        <html><body style="font-family:sans-serif;max-width:500px;margin:20px auto;">
+        <h2 style="color:#2563eb;">{subject}</h2>
+        <p>{body}</p>
+        <p><a href="{link}" style="background:#2563eb;color:#fff;padding:10px 16px;text-decoration:none;border-radius:6px;">View Dashboard</a></p>
+        </body></html>
+        """
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = smtp_user
+        msg['To'] = to_email
+        msg.attach(MIMEText(html, 'html'))
+
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.send_message(msg)
+        return True
+    except Exception as e:
+        print(f"Instant email error: {e}")
+        return False

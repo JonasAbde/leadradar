@@ -24,6 +24,7 @@ from .scrapers import get_scraper
 from .mail import send_daily_report
 from .stripe_config import get_checkout_session_url, handle_webhook, SUBSCRIPTION_LIMITS
 from .cvr_enrichment import enrich_lead
+from .alert_dispatcher import create_alert, dispatch_alert, get_or_create_prefs
 
 app = FastAPI(title="LeadRadar", description="Autonomous lead monitoring for SMBs")
 
@@ -556,6 +557,73 @@ def stripe_webhook(request: Request):
         # Update user subscription in DB
         pass
     
+    return {"status": "ok"}
+
+# ============== ALERTS ==============
+
+@app.get("/api/alerts")
+def list_alerts(unread_only: bool = False, db: Session = Depends(models.get_db), user = Depends(get_current_user)):
+    q = db.query(models.Alert).filter(models.Alert.user_id == user.id)
+    if unread_only:
+        q = q.filter(models.Alert.read == False)
+    alerts = q.order_by(models.Alert.created_at.desc()).limit(50).all()
+    return [{
+        "id": a.id,
+        "source_type": a.source_type,
+        "event": a.event,
+        "severity": a.severity,
+        "message": a.message,
+        "lead_id": a.lead_id,
+        "link_path": a.link_path,
+        "read": a.read,
+        "created_at": a.created_at.isoformat() if a.created_at else None,
+    } for a in alerts]
+
+@app.post("/api/alerts/{alert_id}/read")
+def mark_alert_read(alert_id: int, db: Session = Depends(models.get_db), user = Depends(get_current_user)):
+    alert = db.query(models.Alert).filter(models.Alert.id == alert_id, models.Alert.user_id == user.id).first()
+    if not alert:
+        raise HTTPException(404, "Alert not found")
+    alert.read = True
+    db.commit()
+    return {"status": "ok"}
+
+@app.delete("/api/alerts/{alert_id}")
+def delete_alert(alert_id: int, db: Session = Depends(models.get_db), user = Depends(get_current_user)):
+    alert = db.query(models.Alert).filter(models.Alert.id == alert_id, models.Alert.user_id == user.id).first()
+    if not alert:
+        raise HTTPException(404, "Alert not found")
+    db.delete(alert)
+    db.commit()
+    return {"status": "deleted"}
+
+@app.get("/api/notification-prefs")
+def get_prefs(db: Session = Depends(models.get_db), user = Depends(get_current_user)):
+    prefs = get_or_create_prefs(db, user.id)
+    return {
+        "new_lead_web": prefs.new_lead_web,
+        "new_lead_email": prefs.new_lead_email,
+        "new_lead_slack": prefs.new_lead_slack,
+        "slack_webhook_url": prefs.slack_webhook_url,
+        "email_digest": prefs.email_digest,
+        "digest_hour": prefs.digest_hour,
+    }
+
+@app.put("/api/notification-prefs")
+def update_prefs(
+    data: dict,
+    db: Session = Depends(models.get_db),
+    user = Depends(get_current_user)
+):
+    prefs = get_or_create_prefs(db, user.id)
+    prefs.new_lead_web = data.get("new_lead_web", prefs.new_lead_web)
+    prefs.new_lead_email = data.get("new_lead_email", prefs.new_lead_email)
+    prefs.new_lead_slack = data.get("new_lead_slack", prefs.new_lead_slack)
+    if "slack_webhook_url" in data:
+        prefs.slack_webhook_url = data["slack_webhook_url"] or None
+    prefs.email_digest = data.get("email_digest", prefs.email_digest)
+    prefs.digest_hour = data.get("digest_hour", prefs.digest_hour)
+    db.commit()
     return {"status": "ok"}
 
 # ============== HEALTH ==============
