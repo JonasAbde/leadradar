@@ -50,6 +50,10 @@
         .badge-news { background: #dbeafe; color: #1e40af; }
         .badge-competitor { background: #f3e8ff; color: #6b21a8; }
         .badge-cvr { background: #ecfdf5; color: #065f46; }
+        .badge-crm-synced { background: #dcfce7; color: #166534; }
+        .badge-crm-failed { background: #fee2e2; color: #991b1b; }
+        .badge-crm-pending { background: #fef3c7; color: #92400e; }
+        .badge-crm-none { background: #f1f5f9; color: #64748b; }
         .status { font-size: 11px; padding: 2px 8px; border-radius: 12px; cursor: pointer; border: none; }
         .status-new { background: #fef3c7; color: #92400e; }
         .status-contacted { background: #dbeafe; color: #1e40af; }
@@ -154,21 +158,37 @@
 
                 {% if leads %}
                 {% for lead in leads %}
-                <div class="lead">
+                <div class="lead" data-lead-id="{{ lead.id }}">
                     <h4>
                         {{ lead.title }}
-                        <span class="badge badge-{{ lead.source.source_type if lead.source else 'new' }}">{{ lead.source.source_type if lead.source else 'new' }}</span>
+                        {% set st = lead.source.source_type if lead.source else 'new' %}
+                        <span class="badge badge-{{ st }}">{{ st }}</span>
                         {% if lead.score > 0 %}<span class="score">{{ lead.score }} pts</span>{% endif %}
+                        {% if lead.crm_sync_status == 'synced' %}
+                            <span class="badge badge-crm-synced" title="Synced to {{ lead.crm_provider }}">✓ {{ lead.crm_provider }}</span>
+                        {% elif lead.crm_sync_status == 'failed' %}
+                            <span class="badge badge-crm-failed" title="Sync failed: {{ lead.crm_last_error or 'Unknown' }}">✗ CRM</span>
+                        {% elif lead.crm_sync_status == 'pending' %}
+                            <span class="badge badge-crm-pending" title="Sync pending">⏳ CRM</span>
+                        {% else %}
+                            <span class="badge badge-crm-none">no CRM</span>
+                        {% endif %}
                     </h4>
                     <p>{{ lead.description[:250] }}</p>
                     <div class="meta">
                         <span>{{ lead.company }}</span>
                         <span>{{ lead.location or 'Unknown' }}</span>
                         <span>{{ lead.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        {% if lead.phone %}<span>📞 {{ lead.phone }}</span>{% endif %}
+                        {% if lead.contact_email %}<span>✉️ {{ lead.contact_email }}</span>{% endif %}
+                        {% if lead.cvr_number %}<span>CVR {{ lead.cvr_number }}</span>{% endif %}
                     </div>
                     <div class="actions">
                         {% if lead.url and lead.url != '#' %}
                         <a href="{{ lead.url }}" target="_blank" class="btn btn-sm btn-outline">View Source</a>
+                        {% endif %}
+                        {% if lead.crm_sync_status != 'synced' %}
+                        <button class="btn btn-sm btn-outline" onclick="syncToCrm({{ lead.id }})" data-sync-btn="{{ lead.id }}">Sync to CRM</button>
                         {% endif %}
                         <select class="status status-{{ lead.status }}" onchange="updateStatus({{ lead.id }}, this.value)">
                             <option value="new" {{ 'selected' if lead.status == 'new' }}>New</option>
@@ -232,6 +252,31 @@
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `status=${status}`
         });
+    }
+
+    async function syncToCrm(leadId) {
+        const btn = document.querySelector(`button[data-sync-btn="${leadId}"]`);
+        if (!btn) return;
+        btn.textContent = 'Syncing...';
+        btn.disabled = true;
+        try {
+            const resp = await fetch(`/api/leads/${leadId}/sync-crm`, { method: 'POST' });
+            const data = await resp.json();
+            if (data.success) {
+                btn.textContent = 'Synced ✓';
+                btn.style.background = '#dcfce7';
+                btn.style.color = '#166534';
+                btn.style.borderColor = '#166534';
+            } else {
+                btn.textContent = 'Retry';
+                btn.disabled = false;
+                alert(`Sync failed: ${data.error || 'Unknown error'}`);
+            }
+        } catch (e) {
+            btn.textContent = 'Sync to CRM';
+            btn.disabled = false;
+            alert('Network error. Please retry.');
+        }
     }
     </script>
 </body>

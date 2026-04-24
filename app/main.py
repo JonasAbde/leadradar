@@ -385,6 +385,57 @@ def update_lead_status(
     db.commit()
     return {"status": "ok"}
 
+@app.post("/api/leads/{lead_id}/sync-crm")
+@limiter.limit("20/minute")
+def sync_lead_to_crm(
+    request: Request,
+    lead_id: int,
+    user: models.User = Depends(get_current_user),
+    db: Session = Depends(models.get_db)
+):
+    """Manually sync a single lead to CRM. Returns immediately (queue-based)."""
+    lead = db.query(models.Lead).filter(
+        models.Lead.id == lead_id,
+        models.Lead.user_id == user.id
+    ).first()
+    if not lead:
+        raise HTTPException(404, "Lead not found")
+    
+    # Find user's active CRM config
+    config = db.query(models.CRMProviderConfig).filter(
+        models.CRMProviderConfig.user_id == user.id,
+        models.CRMProviderConfig.enabled == True
+    ).first()
+    
+    provider_name = "mock"  # Default: no external calls
+    if config:
+        provider_name = config.provider
+    
+    from app.crm_sync_worker import enqueue_lead_sync
+    enqueued = enqueue_lead_sync(db, lead_id, user.id, provider_name)
+    
+    if not enqueued:
+        return {"success": True, "message": "Already in queue"}
+    
+    # Run immediately for single-lead sync
+    from app.crm_sync_worker import process_sync_queue
+    summary = process_sync_queue(db, max_jobs=1)
+    
+    # Refresh lead state
+    db.refresh(lead)
+    
+    return {
+        "success": lead.crm_sync_status == "synced",
+        "status": lead.crm_sync_status,
+        "provider": provider_name,
+        "external_ids": {
+            "company": lead.crm_external_company_id,
+            "contact": lead.crm_external_contact_id,
+            "lead": lead.crm_external_lead_id,
+        } if lead.crm_sync_status == "synced" else None,
+        "error": lead.crm_last_error,
+    }
+
 @app.get("/api/leads/export")
 def export_leads(
     user: models.User = Depends(get_current_user),
