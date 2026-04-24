@@ -214,15 +214,25 @@
 
             <div class="leads">
                 <div class="leads-header">
-                    <h3>Recent Leads</h3>
+                    <h3>Recent Leads <span id="leadCount" style="font-size: 13px; color: #94a3b8; font-weight: 400;"></span></h3>
                     <div class="toolbar">
+                        <input type="text" id="searchLeads" placeholder="Søg leads..." style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; width: 180px;">
+                        <select id="filterStatus" style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;">
+                            <option value="">Alle status</option>
+                            <option value="new">New</option>
+                            <option value="contacted">Contacted</option>
+                            <option value="qualified">Qualified</option>
+                            <option value="won">Won</option>
+                            <option value="lost">Lost</option>
+                        </select>
                         <button onclick="sendReport()" class="btn btn-sm btn-outline">Send Report</button>
                     </div>
                 </div>
 
                 {% if leads %}
+                <div id="leadsContainer">
                 {% for lead in leads %}
-                <div class="lead" data-lead-id="{{ lead.id }}">
+                <div class="lead" data-lead-id="{{ lead.id }}" data-status="{{ lead.status }}" data-title="{{ lead.title|lower }}" data-company="{{ lead.company|lower }}">
                     <h4>
                         {{ lead.title }}
                         {% set st = lead.source.source_type if lead.source else 'new' %}
@@ -264,6 +274,7 @@
                     </div>
                 </div>
                 {% endfor %}
+                </div>
                 {% else %}
                 <div class="empty">
                     <p style="font-size: 18px; margin-bottom: 8px;">🔍 No leads yet</p>
@@ -346,6 +357,35 @@
     function showPreset(val) {
         document.getElementById('presetSelect').style.display = val === 'rss_preset' ? 'block' : 'none';
     }
+
+    // ── Search & Filter ───────────────────────────────────────────────
+    const searchInput = document.getElementById('searchLeads');
+    const statusFilter = document.getElementById('filterStatus');
+    const leadCount = document.getElementById('leadCount');
+
+    function filterLeads() {
+        const term = (searchInput?.value || '').toLowerCase();
+        const status = statusFilter?.value || '';
+        const leads = document.querySelectorAll('#leadsContainer .lead');
+        let visible = 0;
+
+        leads.forEach(l => {
+            const title = l.dataset.title || '';
+            const company = l.dataset.company || '';
+            const leadStatus = l.dataset.status || '';
+            const matchesSearch = !term || title.includes(term) || company.includes(term);
+            const matchesStatus = !status || leadStatus === status;
+            const show = matchesSearch && matchesStatus;
+            l.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        if (leadCount) leadCount.textContent = `(${visible} vises)`;
+    }
+
+    searchInput?.addEventListener('input', filterLeads);
+    statusFilter?.addEventListener('change', filterLeads);
+    filterLeads(); // initial
 
     // ── Alerts ────────────────────────────────────────────────────────
     let alertOpen = false;
