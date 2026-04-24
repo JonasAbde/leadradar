@@ -67,12 +67,55 @@
         .toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
         .limit-warning { background: #fef3c7; color: #92400e; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
         .score { font-size: 11px; font-weight: 700; color: #2563eb; background: #eff6ff; padding: 2px 8px; border-radius: 12px; }
+        .bell-wrap { position: relative; cursor: pointer; }
+        .bell { font-size: 20px; }
+        .bell-badge {
+            position: absolute; top: -4px; right: -6px;
+            background: #ef4444; color: white; font-size: 10px;
+            padding: 1px 5px; border-radius: 10px; font-weight: 700;
+            display: none;
+        }
+        .bell-dropdown {
+            position: absolute; right: 0; top: 36px; width: 340px;
+            background: white; border: 1px solid #e2e8f0; border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 100;
+            display: none; max-height: 420px; overflow-y: auto;
+        }
+        .bell-dropdown.show { display: block; }
+        .alert-item {
+            padding: 12px 16px; border-bottom: 1px solid #f1f5f9;
+            cursor: pointer; transition: background 0.15s;
+        }
+        .alert-item:hover { background: #f8fafc; }
+        .alert-item.unread { border-left: 3px solid #2563eb; }
+        .alert-item.read { opacity: 0.7; }
+        .alert-item .alert-msg { font-size: 13px; color: #1e293b; margin-bottom: 4px; }
+        .alert-item .alert-meta { font-size: 11px; color: #94a3b8; }
+        .alert-item .alert-actions { margin-top: 6px; display: flex; gap: 6px; }
+        .alert-actions button {
+            font-size: 11px; padding: 3px 8px; border: 1px solid #e2e8f0;
+            background: white; border-radius: 4px; cursor: pointer; color: #64748b;
+        }
+        .alert-actions button:hover { background: #f1f5f9; }
     </style>
 </head>
 <body>
     <nav class="nav">
         <a href="/">📡 LeadRadar</a>
         <div class="right">
+            <div class="bell-wrap" onclick="toggleAlerts()">
+                <span class="bell">🔔</span>
+                <span class="bell-badge" id="bellBadge">0</span>
+                <div class="bell-dropdown" id="bellDropdown">
+                    <div style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                        <strong style="font-size: 14px;">Notifikationer</strong>
+                        <button onclick="event.stopPropagation(); markAllRead()" style="font-size: 11px; background: none; border: none; color: #2563eb; cursor: pointer;">Markér alle læst</button>
+                    </div>
+                    <div id="alertList">
+                        <div style="padding: 24px; text-align: center; color: #94a3b8; font-size: 13px;">Ingen notifikationer</div>
+                    </div>
+                </div>
+            </div>
             <span class="tier">{{ user.subscription_tier }}</span>
             <span>{{ user.email }}</span>
             <a href="/api/logout">Logout</a>
@@ -278,6 +321,87 @@
             alert('Network error. Please retry.');
         }
     }
+
+    // ── Alerts ────────────────────────────────────────────────────────
+    let alertOpen = false;
+
+    function toggleAlerts() {
+        alertOpen = !alertOpen;
+        const dd = document.getElementById('bellDropdown');
+        dd.classList.toggle('show', alertOpen);
+        if (alertOpen) loadAlerts();
+    }
+
+    async function loadAlerts() {
+        try {
+            const resp = await fetch('/api/alerts?unread_only=true');
+            const alerts = await resp.json();
+            renderAlerts(alerts);
+        } catch (e) {
+            console.error('Failed to load alerts', e);
+        }
+    }
+
+    function renderAlerts(alerts) {
+        const list = document.getElementById('alertList');
+        const badge = document.getElementById('bellBadge');
+        badge.textContent = alerts.length;
+        badge.style.display = alerts.length > 0 ? 'block' : 'none';
+
+        if (!alerts.length) {
+            list.innerHTML = '<div style="padding: 24px; text-align: center; color: #94a3b8; font-size: 13px;">Ingen ulæste notifikationer</div>';
+            return;
+        }
+        list.innerHTML = alerts.map(a => `
+            <div class="alert-item ${a.read ? 'read' : 'unread'}" onclick="if(event.target.tagName !== 'BUTTON') window.location='${a.link_path || '/dashboard'}'">
+                <div class="alert-msg">${escapeHtml(a.message)}</div>
+                <div class="alert-meta">${a.event} • ${new Date(a.created_at).toLocaleString('da-DK')}</div>
+                <div class="alert-actions">
+                    <button onclick="markRead(${a.id})">Markér læst</button>
+                    <button onclick="dismissAlert(${a.id})">Fjern</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    async function markRead(id) {
+        await fetch(`/api/alerts/${id}/read`, { method: 'POST' });
+        loadAlerts();
+    }
+
+    async function dismissAlert(id) {
+        await fetch(`/api/alerts/${id}`, { method: 'DELETE' });
+        loadAlerts();
+    }
+
+    async function markAllRead() {
+        const items = document.querySelectorAll('.alert-item.unread');
+        for (const item of items) {
+            const id = item.querySelector('button')?.getAttribute('onclick')?.match(/markRead\((\d+)\)/)?.[1];
+            if (id) await fetch(`/api/alerts/${id}/read`, { method: 'POST' });
+        }
+        loadAlerts();
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.bell-wrap')) {
+            alertOpen = false;
+            document.getElementById('bellDropdown').classList.remove('show');
+        }
+    });
+
+    // Poll for new alerts every 30 seconds
+    setInterval(() => {
+        if (!alertOpen) loadAlerts();
+    }, 30000);
+    loadAlerts(); // initial load
     </script>
 </body>
 </html>
