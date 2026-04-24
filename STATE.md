@@ -36,12 +36,18 @@ Priority: HIGH | Impact: Product stickiness
 
 ## Phase 3b: Real-Time Alerts ✅ DONE
 Priority: HIGH | Impact: Product stickiness
-- Chunk 1 ✅: Alert DB model + migration (alerts + user_notification_prefs tables)
-- Chunk 2 ✅: Alert dispatch engine (web/email/Slack, mock email default)
-- Chunk 3 ✅: Auto-trigger on new lead (scheduler + manual scrape)
-- Chunk 4 ✅: Dashboard UI (bell icon, dropdown, mark read/dismiss, 30s polling)
-- Chunk 5 ✅: API endpoints + tests (list, read, delete, prefs)
-- Commits: b3a86b6, 27d2508, cedfc75, b0527af
+- Chunk 1 ✅: Alert DB model + migration
+- Chunk 2 ✅: Alert dispatch engine
+- Chunk 3 ✅: Auto-trigger on new lead
+- Chunk 4 ✅: Dashboard UI
+- Chunk 5 ✅: API endpoints + tests
+- Commits: b3a86b6, 27d2508, cedfc75, b0527af, 94482d5
+
+## Phase 3c: Real Data Sources ✅ IN PROGRESS
+Priority: CRITICAL | Impact: Dashboard emptiness = churn
+- TED EU tenders: BLOCKED by Cloudflare/JS rendering. Need XML bulk API or headless browser.
+- RSS Presets ✅: Version2.dk, Ingeniøren, Berlingske Business — live, returns 10+ leads per scrape
+- Next: Test with real user flow, add more feeds
 
 ## Phase 4: Payments
 Priority: HIGH | Impact: Revenue

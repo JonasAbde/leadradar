@@ -142,6 +142,18 @@
             </div>
         </div>
 
+        {% if sources|length == 0 %}
+        <div class="limit-warning" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;">
+            <strong style="font-size: 16px;">🚀 Kom i gang</strong>
+            <p style="margin-top: 8px;">Du har ingen kilder endnu. Følg disse trin:</p>
+            <ol style="margin: 8px 0 0 20px; font-size: 13px;">
+                <li>Vælg en kilde nedenfor (f.eks. <strong>RSS Presets</strong> for nyheder)</li>
+                <li>Klik <strong>Scrape All Now</strong> for at finde leads</li>
+                <li>Se dine leads her og synkroniser dem til CRM</li>
+            </ol>
+        </div>
+        {% endif %}
+
         {% if not can_add_source %}
         <div class="limit-warning">
             <strong>Source limit reached.</strong> You're using {{ sources|length }} of {{ source_limit }} sources. 
