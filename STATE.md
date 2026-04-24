@@ -16,17 +16,14 @@
 
 ---
 
-## Phase 1: CVR ENRICHMENT API (IN PROGRESS)
-Priority: HIGHEST | Impact: Data accuracy + legal compliance
-- Strategy shift: cvrapi.dk is LOOKUP not SEARCH
-- Use for: phone, email, owner, industry, address, employee count
-- Discovery stays with job/news/udbud scrapers
-- Blocked: None — can build immediately
-
-## Phase 2: Lead Enrichment (READY TO START)
-Priority: HIGHEST | Impact: 10x lead value
-- Add phone, email, employee count, revenue from CVR data
-- Blocked: Needs Phase 1 (CVR API provides the data)
+## Phase 1+2: CVR ENRICHMENT API ✅ DONE
+Priority: HIGHEST | Impact: Data accuracy + lead value
+- cvrapi.dk integration built and tested
+- Auto-enrichment on every new lead during scrape
+- Fields added: phone, email, CVR, address, owner, industry, employees
+- DB migration: 12 new columns on leads table
+- Tested: 3/3 leads enriched successfully
+- Commits: 9d5b804, 59ee3f4
 
 ## Phase 3: Real-Time Alerts (READY TO START)
 Priority: HIGH | Impact: Product stickiness
