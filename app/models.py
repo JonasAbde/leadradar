@@ -105,8 +105,37 @@ class CRMProviderConfig(Base):
     provider = Column(String, nullable=False)  # "mock", "hubspot", "pipedrive"
     enabled = Column(Boolean, default=False)
     auto_sync = Column(Boolean, default=False)
-    config_json = Column(Text, default="{}")  # Encrypted token lives here (env/keyring in prod)
+    config_json = Column(Text, default="{}")
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+# ── Real-Time Alerts ────────────────────────────────────
+
+class Alert(Base):
+    __tablename__ = "alerts"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    source_type = Column(String, nullable=False)           # "lead", "price_drop", "system"
+    event = Column(String, nullable=False)                 # "new_lead", "enrichment_done", "crm_error"
+    severity = Column(String, default="info")              # "info", "warning", "critical"
+    message = Column(Text, nullable=False)
+    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=True)
+    link_path = Column(String, nullable=True)              # e.g. "/dashboard?lead=42"
+    read = Column(Boolean, default=False)
+    sent_email = Column(Boolean, default=False)
+    sent_slack = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class UserNotificationPreference(Base):
+    __tablename__ = "user_notification_prefs"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    new_lead_web = Column(Boolean, default=True)
+    new_lead_email = Column(Boolean, default=False)
+    new_lead_slack = Column(Boolean, default=False)
+    slack_webhook_url = Column(String, nullable=True)
+    email_digest = Column(Boolean, default=False)          # daily digest vs instant
+    digest_hour = Column(Integer, default=7)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 def init_db():
