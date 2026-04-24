@@ -166,12 +166,21 @@
                 <h3 style="margin-top: 24px;">Add Source</h3>
                 <form action="/api/sources" method="post">
                     <input type="text" name="name" placeholder="Source name (e.g. Jobindex IT)" required>
-                    <select name="source_type" required>
+                    <select name="source_type" required onchange="showPreset(this.value)">
                         <option value="job">Job Postings</option>
-                        <option value="news">News / RSS</option>
+                        <option value="news">News / RSS (custom URL)</option>
+                        <option value="rss_preset">📻 RSS Presets (ready feeds)</option>
                         <option value="competitor">Competitor Website</option>
                         <option value="cvr">CVR (DK Companies)</option>
+                        <option value="ted_eu">🌐 EU Tenders (TED)</option>
                     </select>
+                    <div id="presetSelect" style="display:none; margin-bottom: 8px;">
+                        <select name="preset">
+                            <option value="version2_tech">Version2.dk — Tech</option>
+                            <option value="ingenioren_tech">Ingeniøren — Engineering</option>
+                            <option value="berlingske_business">Berlingske Business</option>
+                        </select>
+                    </div>
                     <input type="text" name="url" placeholder="URL (for competitor/news)">
                     <input type="text" name="keywords" placeholder="Keywords: rengøring, it, konsulent">
                     <button type="submit" class="btn btn-sm">Add Source</button>
@@ -320,6 +329,10 @@
             btn.disabled = false;
             alert('Network error. Please retry.');
         }
+    }
+
+    function showPreset(val) {
+        document.getElementById('presetSelect').style.display = val === 'rss_preset' ? 'block' : 'none';
     }
 
     // ── Alerts ────────────────────────────────────────────────────────

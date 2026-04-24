@@ -254,11 +254,145 @@ class CompetitorScraper(BaseScraper):
         
         return results
 
+class TEDScraper(BaseScraper):
+    """Scrape EU tender notices from TED (Tenders Electronic Daily).
+    CPV codes:
+      90 = Sewage/refuse/sanitation (includes cleaning)
+      90900000 = Cleaning services specifically
+    """
+    BASE_URL = "https://ted.europa.eu/en/s/search"
+    
+    def scrape(self) -> List[Dict]:
+        results = []
+        cpv = self.config.get("cpv", "90")
+        country = self.config.get("country", "DK")
+        notice_type = self.config.get("notice_type", "Contract+notice")
+        max_pages = min(self.config.get("max_pages", 3), 5)
+        
+        for page in range(1, max_pages + 1):
+            try:
+                url = (
+                    f"{self.BASE_URL}?page={page}&theme=CPV&value={cpv}"
+                    f"&country={country}&noticeType={notice_type}"
+                )
+                resp = _polite_get(url)
+                if not resp or resp.status_code != 200:
+                    continue
+                
+                soup = BeautifulSoup(resp.text, "html.parser")
+                # TED search results: each notice is in an <article> tag
+                articles = soup.find_all("article")
+                if not articles:
+                    break
+                
+                for article in articles:
+                    try:
+                        # Title link
+                        a = article.find("a", href=re.compile(r"/en/notice/"))
+                        if not a:
+                            continue
+                        title = a.get_text(strip=True)
+                        notice_url = "https://ted.europa.eu" + a["href"]
+                        
+                        # Contracting authority / company
+                        authority = ""
+                        auth_elem = article.find(string=re.compile(r"Contracting\s+authority|Name", re.I))
+                        if auth_elem:
+                            authority = auth_elem.find_next().get_text(strip=True)
+                        
+                        # Description / CPV
+                        desc = ""
+                        desc_elem = article.find(string=re.compile(r"Main\s+CPV", re.I))
+                        if desc_elem:
+                            desc = desc_elem.find_next().get_text(strip=True)
+                        
+                        results.append({
+                            "title": title,
+                            "description": desc or f"EU udbud - CPV {cpv}",
+                            "url": notice_url,
+                            "company": authority or "EU Institution",
+                            "location": country,
+                            "score": 60,  # tenders are high-value signals
+                            "source_type": "ted_eu"
+                        })
+                    except Exception:
+                        continue
+                
+                # Stop if no more results (pagination ends)
+                if len(articles) < 10:
+                    break
+                    
+            except Exception as e:
+                print(f"TED scraping error page {page}: {e}")
+                break
+        
+        return results
+
+class RSSPresetScraper(BaseScraper):
+    """Use hardcoded Danish RSS feeds for instant news signals.
+    No user URL required — selects from preset list in config.
+    """
+    from .rss_presets import RSS_PRESETS
+    
+    def scrape(self) -> List[Dict]:
+        results = []
+        preset_key = self.config.get("preset", "version2_tech")
+        keywords = self.config.get("keywords", [])
+        preset = self.RSS_PRESETS.get(preset_key)
+        
+        if not preset:
+            return results
+        
+        try:
+            resp = requests.get(preset["url"], timeout=15, headers={"User-Agent": "LeadRadar/1.0"})
+            if resp.status_code != 200:
+                return results
+            
+            from xml.etree import ElementTree as ET
+            root = ET.fromstring(resp.text)
+            items = root.findall(".//item")
+            
+            for item in items[:10]:
+                title_el = item.find("title")
+                desc_el = item.find("description")
+                link_el = item.find("link")
+                pub_el = item.find("pubDate")
+                
+                title = (title_el.text or "").strip() if title_el is not None else ""
+                desc = (desc_el.text or "").strip()[:250] if desc_el is not None else ""
+                link = (link_el.text or "").strip() if link_el is not None else "#"
+                pub = (pub_el.text or "").strip() if pub_el is not None else ""
+                
+                if not title:
+                    continue
+                
+                # Filter by keywords if provided
+                if keywords:
+                    text_to_check = f"{title} {desc}".lower()
+                    if not any(kw.lower() in text_to_check for kw in keywords):
+                        continue
+                
+                results.append({
+                    "title": title,
+                    "company": preset["name"],
+                    "description": desc or f"RSS feed item from {preset['name']}",
+                    "url": link,
+                    "location": "Danmark",
+                    "score": 35,
+                    "published": pub,
+                })
+        except Exception as e:
+            print(f"RSS preset error ({preset_key}): {e}")
+        
+        return results
+
 SCRAPER_MAP = {
     "cvr": CVRScraper,
     "job": JobScraper,
     "news": NewsScraper,
     "competitor": CompetitorScraper,
+    "ted_eu": TEDScraper,
+    "rss_preset": RSSPresetScraper,
 }
 
 def get_scraper(source):

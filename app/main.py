@@ -201,6 +201,7 @@ def create_source(
     source_type: str = Form(...),
     url: str = Form(""),
     keywords: str = Form(""),
+    preset: str = Form(""),
     user: models.User = Depends(get_current_user),
     db: Session = Depends(models.get_db)
 ):
@@ -210,7 +211,10 @@ def create_source(
     if current_count >= limits["sources"]:
         raise HTTPException(403, "Source limit reached. Upgrade to add more.")
     
-    config = json.dumps({"keywords": [k.strip() for k in keywords.split(",") if k.strip()]})
+    cfg = {"keywords": [k.strip() for k in keywords.split(",") if k.strip()]}
+    if source_type == "rss_preset":
+        cfg["preset"] = preset or "version2_tech"
+    config = json.dumps(cfg)
     
     source = models.Source(
         user_id=user.id,
