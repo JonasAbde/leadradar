@@ -71,7 +71,43 @@ class Lead(Base):
     enriched_at = Column(DateTime, nullable=True)
     enrichment_data = Column(Text, nullable=True)  # JSON blob of raw enrichment
     
+    # CRM sync status (new fields)
+    crm_provider = Column(String, nullable=True)  # "mock", "hubspot", "pipedrive"
+    crm_external_company_id = Column(String, nullable=True)
+    crm_external_contact_id = Column(String, nullable=True)
+    crm_external_lead_id = Column(String, nullable=True)
+    crm_sync_status = Column(String, nullable=True)  # "pending", "synced", "failed"
+    crm_last_sync_at = Column(DateTime, nullable=True)
+    crm_last_error = Column(Text, nullable=True)
+    crm_sync_attempts = Column(Integer, default=0)
+    crm_idempotency_key = Column(String, nullable=True)  # lead_id + timestamp hash
+    
     user = relationship("User", back_populates="leads")
+
+class CRMSyncQueue(Base):
+    __tablename__ = "crm_sync_queue"
+    id = Column(Integer, primary_key=True, index=True)
+    lead_id = Column(Integer, ForeignKey("leads.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    provider = Column(String, nullable=False)  # "mock", "hubspot", "pipedrive"
+    status = Column(String, default="pending")  # "pending", "in_progress", "done", "failed"
+    attempts = Column(Integer, default=0)
+    max_attempts = Column(Integer, default=5)
+    error = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    next_retry_at = Column(DateTime, nullable=True)
+
+class CRMProviderConfig(Base):
+    __tablename__ = "crm_provider_configs"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    provider = Column(String, nullable=False)  # "mock", "hubspot", "pipedrive"
+    enabled = Column(Boolean, default=False)
+    auto_sync = Column(Boolean, default=False)
+    config_json = Column(Text, default="{}")  # Encrypted token lives here (env/keyring in prod)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 def init_db():
     Base.metadata.create_all(bind=engine)
