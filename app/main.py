@@ -23,6 +23,7 @@ from .auth import (
 from .scrapers import get_scraper
 from .mail import send_daily_report
 from .stripe_config import get_checkout_session_url, handle_webhook, SUBSCRIPTION_LIMITS
+from .cvr_enrichment import enrich_lead
 
 app = FastAPI(title="LeadRadar", description="Autonomous lead monitoring for SMBs")
 
@@ -329,9 +330,34 @@ def scrape_all(
                     description=r.get("description", ""),
                     url=r.get("url", ""),
                     company=r.get("company", ""),
+                    contact_email=r.get("contact_email", None),
+                    phone=r.get("phone", None),
                     location=r.get("location", ""),
                     score=r.get("score", 0)
                 )
+                
+                # Enrich with CVR API
+                try:
+                    enrichment = enrich_lead(lead.company)
+                    if enrichment:
+                        lead.phone = enrichment.get("phone") or lead.phone
+                        lead.contact_email = enrichment.get("email") or lead.contact_email
+                        lead.cvr_number = enrichment.get("cvr_number")
+                        lead.address = enrichment.get("address")
+                        lead.zipcode = enrichment.get("zipcode")
+                        lead.city = enrichment.get("city")
+                        lead.industry_code = enrichment.get("industry_code")
+                        lead.industry_desc = enrichment.get("industry_desc")
+                        lead.company_type = enrichment.get("company_type")
+                        lead.employee_count = enrichment.get("employee_count")
+                        lead.owner_name = enrichment.get("owner_name")
+                        lead.enriched = True
+                        lead.enriched_at = datetime.utcnow()
+                        lead.enrichment_data = json.dumps(enrichment.get("raw_data"))
+                        logger.info(f"Enriched lead: {lead.company} -> CVR {lead.cvr_number}")
+                except Exception as e:
+                    logger.warning(f"Enrichment failed for {lead.company}: {e}")
+                
                 db.add(lead)
                 total_new += 1
         

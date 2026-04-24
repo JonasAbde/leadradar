@@ -16,9 +16,11 @@
 
 ---
 
-## Phase 1: CVR API (READY TO START)
+## Phase 1: CVR ENRICHMENT API (IN PROGRESS)
 Priority: HIGHEST | Impact: Data accuracy + legal compliance
-- Replace HTML scraper with official CVR API
+- Strategy shift: cvrapi.dk is LOOKUP not SEARCH
+- Use for: phone, email, owner, industry, address, employee count
+- Discovery stays with job/news/udbud scrapers
 - Blocked: None — can build immediately
 
 ## Phase 2: Lead Enrichment (READY TO START)

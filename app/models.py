@@ -57,6 +57,20 @@ class Lead(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     notified = Column(Boolean, default=False)
     
+    # Enrichment fields from CVR API
+    cvr_number = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    zipcode = Column(String, nullable=True)
+    city = Column(String, nullable=True)
+    industry_code = Column(String, nullable=True)
+    industry_desc = Column(String, nullable=True)
+    company_type = Column(String, nullable=True)
+    employee_count = Column(Integer, nullable=True)
+    owner_name = Column(String, nullable=True)
+    enriched = Column(Boolean, default=False)
+    enriched_at = Column(DateTime, nullable=True)
+    enrichment_data = Column(Text, nullable=True)  # JSON blob of raw enrichment
+    
     user = relationship("User", back_populates="leads")
 
 def init_db():
