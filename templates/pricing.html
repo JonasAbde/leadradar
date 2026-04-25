@@ -6,114 +6,143 @@
     <title>Pricing — LeadRadar</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #1e293b; }
-        .nav { background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
-        .nav a { color: #2563eb; text-decoration: none; font-weight: 600; }
-        .container { max-width: 1000px; margin: 0 auto; padding: 64px 24px; }
-        h1 { text-align: center; font-size: 36px; margin-bottom: 8px; }
-        .subtitle { text-align: center; color: #64748b; margin-bottom: 48px; font-size: 18px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
-        .plan { background: white; padding: 32px; border-radius: 16px; border: 2px solid #e2e8f0; transition: border-color 0.2s, transform 0.2s; }
-        .plan:hover { border-color: #2563eb; transform: translateY(-4px); }
-        .plan.featured { border-color: #2563eb; position: relative; }
-        .badge-popular { position: absolute; top: -12px; right: 16px; background: #2563eb; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-        .plan h3 { font-size: 20px; margin-bottom: 8px; }
-        .price { font-size: 42px; font-weight: 700; color: #1e293b; margin: 16px 0; }
-        .price span { font-size: 16px; color: #64748b; font-weight: 400; }
-        .plan ul { list-style: none; margin: 24px 0; }
-        .plan li { padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 15px; color: #475569; }
-        .plan li::before { content: "✓"; color: #22c55e; margin-right: 8px; font-weight: 700; }
-        .btn { display: block; text-align: center; padding: 14px; background: #2563eb; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background 0.2s; }
-        .btn:hover { background: #1d4ed8; }
-        .btn-outline { background: white; color: #2563eb; border: 2px solid #2563eb; }
-        .btn-outline:hover { background: #eff6ff; }
-        .compare { max-width: 800px; margin: 64px auto; }
-        .compare h2 { text-align: center; font-size: 28px; margin-bottom: 32px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 16px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { font-weight: 600; color: #64748b; font-size: 14px; text-transform: uppercase; }
-        td:first-child { font-weight: 500; }
-        .check { color: #22c55e; font-weight: 700; }
-        .cross { color: #cbd5e1; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; }
+        .nav { background: #1e293b; border-bottom: 1px solid #334155; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .nav a { color: #e2e8f0; text-decoration: none; font-weight: 600; transition: color 0.2s; }
+        .nav a:hover { color: #3b82f6; }
+        .container { max-width: 960px; margin: 0 auto; padding: 80px 24px 40px; }
+        h1 { text-align: center; font-size: 40px; margin-bottom: 8px; background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .subtitle { text-align: center; color: #94a3b8; margin-bottom: 56px; font-size: 18px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; }
+        .plan { background: #1e293b; padding: 36px; border-radius: 16px; border: 1px solid #334155; transition: border-color 0.3s, transform 0.2s; position: relative; }
+        .plan:hover { border-color: #3b82f6; transform: translateY(-4px); }
+        .plan.featured { border-color: #3b82f6; box-shadow: 0 0 40px rgba(59, 130, 246, 0.1); }
+        .badge-popular { position: absolute; top: -12px; right: 20px; background: linear-gradient(135deg, #3b82f6, #6366f1); color: white; padding: 4px 14px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .plan h3 { font-size: 22px; margin-bottom: 6px; color: #f1f5f9; }
+        .plan .desc { color: #94a3b8; font-size: 14px; margin-bottom: 16px; }
+        .price { font-size: 48px; font-weight: 800; color: #f1f5f9; margin: 16px 0; }
+        .price span { font-size: 16px; color: #94a3b8; font-weight: 400; }
+        .plan ul { list-style: none; margin: 24px 0 32px; }
+        .plan li { padding: 12px 0; border-bottom: 1px solid #1e293b; font-size: 15px; color: #cbd5e1; display: flex; align-items: flex-start; gap: 10px; }
+        .plan li::before { content: "✓"; color: #22c55e; font-weight: 700; flex-shrink: 0; }
+        .btn { display: block; text-align: center; padding: 16px; border-radius: 10px; font-weight: 700; font-size: 16px; text-decoration: none; transition: background 0.2s, box-shadow 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #6366f1); color: white; }
+        .btn-primary:hover { box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3); }
+        .btn-outline { background: transparent; color: #3b82f6; border: 2px solid #3b82f6; }
+        .btn-outline:hover { background: #1e3a8a; }
+        .compare-section { max-width: 800px; margin: 80px auto 0; }
+        .compare-section h2 { text-align: center; font-size: 28px; margin-bottom: 32px; color: #f1f5f9; }
+        table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid #334155; }
+        th { background: #0f172a; padding: 16px; font-weight: 600; color: #94a3b8; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; text-align: left; }
+        td { padding: 14px 16px; border-top: 1px solid #334155; color: #cbd5e1; font-size: 14px; }
+        .check { color: #22c55e; font-weight: 700; font-size: 18px; }
+        .cross { color: #475569; font-size: 18px; }
+        .faq { max-width: 700px; margin: 64px auto 0; }
+        .faq h2 { text-align: center; font-size: 28px; margin-bottom: 32px; color: #f1f5f9; }
+        .faq-item { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 20px; margin-bottom: 12px; }
+        .faq-item h4 { color: #f1f5f9; margin-bottom: 8px; font-size: 15px; }
+        .faq-item p { color: #94a3b8; font-size: 14px; line-height: 1.6; }
+        @media (max-width: 768px) {
+            h1 { font-size: 32px; }
+            .price { font-size: 40px; }
+            .grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
     <nav class="nav">
-        <a href="/">📡 LeadRadar</a>
+        <a href="/">LeadRadar</a>
         <div>
+            {% if user %}
+            <a href="/dashboard" style="margin-right: 16px;">Dashboard</a>
+            {% else %}
             <a href="/login" style="margin-right: 16px;">Sign In</a>
             <a href="/register">Get Started</a>
+            {% endif %}
         </div>
     </nav>
 
     <div class="container">
-        <h1>Simple, transparent pricing</h1>
+        <h1>Simple, Transparent Pricing</h1>
         <p class="subtitle">Start free. Upgrade when you need more power.</p>
 
         <div class="grid">
-            <div class="plan">
-                <h3>Free</h3>
-                <div class="price">0 kr<span>/mo</span></div>
-                <ul>
-                    <li>1 lead source</li>
-                    <li>Daily checks</li>
-                    <li>7-day history</li>
-                    <li>Email reports</li>
-                    <li>Basic dashboard</li>
-                </ul>
-                <a href="/register" class="btn btn-outline">Get Started Free</a>
-            </div>
-
             <div class="plan featured">
-                <div class="badge-popular">MOST POPULAR</div>
+                <div class="badge-popular">Most Popular</div>
                 <h3>Pro</h3>
-                <div class="price">149 kr<span>/mo</span></div>
+                <p class="desc">For single businesses hunting leads</p>
+                <div class="price">DKK 499<span>/month</span></div>
                 <ul>
-                    <li>10 lead sources</li>
-                    <li>Hourly checks</li>
-                    <li>90-day history</li>
-                    <li>CSV export</li>
-                    <li>API access</li>
-                    <li>Priority support</li>
+                    <li>Single business workspace</li>
+                    <li>1 lead pack of your choice</li>
+                    <li>Up to 50 leads per month</li>
+                    <li>Daily updates, new leads every morning</li>
+                    <li>CRM sync (HubSpot, Pipedrive)</li>
+                    <li>Company enrichment via CVR</li>
+                    <li>Email & dashboard alerts</li>
                 </ul>
                 {% if user %}
-                <a href="#" onclick="upgrade('pro')" class="btn">Upgrade to Pro</a>
+                    <a href="#" onclick="upgrade('pro')" class="btn btn-primary">Upgrade to Pro</a>
                 {% else %}
-                <a href="/register" class="btn">Start Pro Trial</a>
+                    <a href="/register" class="btn btn-primary">Start Free Trial</a>
                 {% endif %}
             </div>
 
             <div class="plan">
                 <h3>Agency</h3>
-                <div class="price">399 kr<span>/mo</span></div>
+                <p class="desc">For agencies managing multiple clients</p>
+                <div class="price">DKK 1,499<span>/month</span></div>
                 <ul>
-                    <li>50 lead sources</li>
-                    <li>Hourly checks</li>
-                    <li>Unlimited history</li>
-                    <li>White-label reports</li>
-                    <li>API access</li>
-                    <li>Priority support</li>
+                    <li>Multiple client workspaces</li>
+                    <li>All lead packs (IT, Construction, Consulting, Cleaning)</li>
+                    <li>Unlimited leads</li>
+                    <li>Real-time alerts, no delays</li>
+                    <li>Priority support & onboarding</li>
+                    <li>Full CRM integration</li>
+                    <li>CSV & API export</li>
                 </ul>
                 {% if user %}
-                <a href="#" onclick="upgrade('agency')" class="btn btn-outline">Upgrade to Agency</a>
+                    <a href="#" onclick="upgrade('agency')" class="btn btn-outline">Upgrade to Agency</a>
                 {% else %}
-                <a href="/register" class="btn btn-outline">Start Agency Trial</a>
+                    <a href="/register" class="btn btn-outline">Start Free Trial</a>
                 {% endif %}
             </div>
         </div>
 
-        <div class="compare">
-            <h2>Compare plans</h2>
+        <div class="compare-section">
+            <h2>Compare Plans</h2>
             <table>
-                <tr><th>Feature</th><th>Free</th><th>Pro</th><th>Agency</th></tr>
-                <tr><td>Lead sources</td><td>1</td><td>10</td><td>50</td></tr>
-                <tr><td>Check frequency</td><td>Daily</td><td>Hourly</td><td>Hourly</td></tr>
-                <tr><td>History</td><td>7 days</td><td>90 days</td><td>Unlimited</td></tr>
-                <tr><td>Email reports</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
-                <tr><td>CSV export</td><td class="cross">✗</td><td class="check">✓</td><td class="check">✓</td></tr>
-                <tr><td>API access</td><td class="cross">✗</td><td class="check">✓</td><td class="check">✓</td></tr>
-                <tr><td>White-label</td><td class="cross">✗</td><td class="cross">✗</td><td class="check">✓</td></tr>
+                <tr><th>Feature</th><th>Pro</th><th>Agency</th></tr>
+                <tr><td>Lead packs</td><td>1 pack</td><td>All packs</td></tr>
+                <tr><td>Leads per month</td><td>50</td><td>Unlimited</td></tr>
+                <tr><td>Update frequency</td><td>Daily</td><td>Real-time</td></tr>
+                <tr><td>CRM sync</td><td>✓</td><td>✓</td></tr>
+                <tr><td>CVR enrichment</td><td>✓</td><td>✓</td></tr>
+                <tr><td>Client workspaces</td><td class="cross">✗</td><td class="check">✓</td></tr>
+                <tr><td>API access</td><td class="cross">✗</td><td class="check">✓</td></tr>
+                <tr><td>Priority support</td><td class="cross">✗</td><td class="check">✓</td></tr>
+                <tr><td>CSV export</td><td>✓</td><td>✓</td></tr>
             </table>
+        </div>
+
+        <div class="faq">
+            <h2>FAQ</h2>
+            <div class="faq-item">
+                <h4>What is a "lead pack"?</h4>
+                <p>A lead pack is a pre-configured industry filter — e.g., IT & Software, Construction, Consulting. Each pack contains relevant CPV codes used to query the TED EU tender database.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Can I switch lead packs?</h4>
+                <p>Pro plan includes 1 active pack at a time. You can switch any time. Agency plan gives you access to all packs simultaneously.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Do I need a Stripe account?</h4>
+                <p>No — Stripe is used for payment processing on our end. You just provide your credit card details during checkout.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Is there a free trial?</h4>
+                <p>Yes! Register for free to explore the dashboard and see sample tenders before committing to a paid plan.</p>
+            </div>
         </div>
     </div>
 
@@ -125,10 +154,10 @@
             if (data.url) {
                 window.location.href = data.url;
             } else {
-                alert('Stripe is not configured yet. Contact support.');
+                alert('Stripe is not configured yet. Contact support to upgrade.');
             }
         } catch (e) {
-            alert('Stripe is not configured yet. Contact support.');
+            alert('Stripe is not configured yet. Contact support to upgrade.');
         }
     }
     </script>

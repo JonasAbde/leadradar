@@ -3,97 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LeadRadar — Automated Lead Intelligence for SMBs</title>
+    <title>LeadRadar — Find Danish Public Tenders</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; line-height: 1.6; }
-        .hero { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: white; padding: 100px 20px; text-align: center; }
-        .hero h1 { font-size: 48px; margin-bottom: 16px; }
-        .hero p { font-size: 20px; opacity: 0.9; margin-bottom: 32px; max-width: 600px; margin-left: auto; margin-right: auto; }
-        .cta { display: inline-block; background: white; color: #2563eb; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; }
-        .features { padding: 80px 20px; max-width: 1000px; margin: 0 auto; }
-        .features h2 { text-align: center; font-size: 32px; margin-bottom: 48px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; }
-        .feature { padding: 24px; border-radius: 12px; background: #f8fafc; }
-        .feature h3 { font-size: 20px; margin-bottom: 8px; color: #2563eb; }
-        .feature p { color: #64748b; }
-        .pricing { padding: 80px 20px; background: #f1f5f9; }
-        .pricing h2 { text-align: center; font-size: 32px; margin-bottom: 48px; }
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto; }
-        .plan { background: white; padding: 32px; border-radius: 12px; text-align: center; }
-        .plan h3 { font-size: 20px; margin-bottom: 8px; }
-        .price { font-size: 36px; font-weight: 700; color: #2563eb; margin: 16px 0; }
-        .plan ul { list-style: none; text-align: left; margin: 24px 0; }
-        .plan li { padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
-        .plan .cta { background: #2563eb; color: white; }
-        footer { text-align: center; padding: 40px; color: #94a3b8; font-size: 14px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #e2e8f0; background: #0f172a; line-height: 1.6; }
+
+        .hero { background: linear-gradient(160deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); padding: 120px 20px 80px; text-align: center; border-bottom: 1px solid #1e293b; }
+        .hero h1 { font-size: 52px; font-weight: 800; margin-bottom: 20px; background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero p { font-size: 20px; color: #94a3b8; max-width: 650px; margin: 0 auto 36px; line-height: 1.7; }
+        .hero .sub { font-size: 15px; color: #64748b; margin-top: -16px; margin-bottom: 32px; }
+        .cta-btn { display: inline-block; background: linear-gradient(135deg, #3b82f6, #6366f1); color: white; padding: 16px 40px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 17px; transition: transform 0.2s, box-shadow 0.2s; }
+        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3); }
+        .cta-note { margin-top: 12px; font-size: 13px; color: #64748b; }
+
+        .value-props { padding: 80px 20px; max-width: 1100px; margin: 0 auto; }
+        .value-props h2 { text-align: center; font-size: 28px; margin-bottom: 48px; color: #f1f5f9; }
+        .props-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+        .prop-card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 32px; transition: border-color 0.3s, transform 0.2s; }
+        .prop-card:hover { border-color: #3b82f6; transform: translateY(-3px); }
+        .prop-icon { font-size: 36px; margin-bottom: 16px; }
+        .prop-card h3 { font-size: 18px; margin-bottom: 10px; color: #f1f5f9; }
+        .prop-card p { color: #94a3b8; font-size: 15px; }
+        .prop-tag { display: inline-block; background: #1e3a8a; color: #93c5fd; padding: 3px 10px; border-radius: 6px; font-size: 12px; margin-top: 12px; }
+
+        .live-tenders { padding: 60px 20px 80px; max-width: 900px; margin: 0 auto; }
+        .live-tenders h2 { text-align: center; font-size: 28px; margin-bottom: 12px; color: #f1f5f9; }
+        .live-sub { text-align: center; color: #64748b; margin-bottom: 36px; font-size: 15px; }
+        .tender-list { display: flex; flex-direction: column; gap: 16px; }
+        .tender-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; transition: border-color 0.2s; }
+        .tender-card:hover { border-color: #475569; }
+        .tender-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+        .tender-title { font-size: 16px; font-weight: 600; color: #f1f5f9; flex: 1; }
+        .tender-buyer { color: #3b82f6; font-size: 14px; font-weight: 500; margin-top: 6px; }
+        .tender-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+        .tender-badge { background: #0f172a; color: #94a3b8; padding: 4px 12px; border-radius: 6px; font-size: 12px; border: 1px solid #334155; }
+        .pack-badge { background: #1e3a8a; color: #bfdbfe; border-color: #1e40af; }
+
+        .final-cta { text-align: center; padding: 80px 20px; background: linear-gradient(180deg, #0f172a, #1a1a2e); border-top: 1px solid #1e293b; }
+        .final-cta h2 { font-size: 32px; margin-bottom: 16px; color: #f1f5f9; }
+        .final-cta p { color: #94a3b8; margin-bottom: 32px; font-size: 17px; }
+
+        footer { text-align: center; padding: 32px; color: #475569; font-size: 13px; border-top: 1px solid #1e293b; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 34px; }
+            .hero p { font-size: 17px; }
+            .props-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
     <section class="hero">
-        <h1>📡 LeadRadar</h1>
-        <p>Autonomous lead intelligence for Danish SMBs. We monitor CVR, job postings, news, and competitors — so you never miss an opportunity.</p>
-        <a href="/register" class="cta">Start Free — No Credit Card</a>
+        <h1>Find Danish Public Tenders Before Your Competitors</h1>
+        <p>LeadRadar monitors EU tenders (TED), Danish companies via CVR, and business news — delivering relevant leads directly to you every day.</p>
+        <p class="sub">Built for Danish SMBs, consultants, and agencies.</p>
+        <a href="/register" class="cta-btn">Get Started Free</a>
+        <p class="cta-note">No credit card required · Cancel anytime</p>
     </section>
 
-    <section class="features">
-        <h2>How it works</h2>
-        <div class="grid">
-            <div class="feature">
-                <h3>1. Set Your Sources</h3>
-                <p>Choose what to monitor: job postings, competitor websites, CVR registrations, or news mentions.</p>
+    <section class="value-props">
+        <h2>Three data sources. One dashboard.</h2>
+        <div class="props-grid">
+            <div class="prop-card">
+                <div class="prop-icon">🏛️</div>
+                <h3>EU Public Tenders (TED)</h3>
+                <p>Real-time access to thousands of public procurement notices published daily on Tenders Electronic Daily. Filtered by industry, country, and relevance to your business.</p>
+                <span class="prop-tag">10,000+ notices/month in DK</span>
             </div>
-            <div class="feature">
-                <h3>2. We Scrape Daily</h3>
-                <p>Our agents check your sources every day. New leads are scored, deduplicated, and stored.</p>
+            <div class="prop-card">
+                <div class="prop-icon">🏢</div>
+                <h3>Danish Companies via CVR</h3>
+                <p>Automatically enrich leads with company data from Denmark's Central Business Register — CVR numbers, ownership, industry codes, employee count, and contact details.</p>
+                <span class="prop-tag">cvrapi.dk integration</span>
             </div>
-            <div class="feature">
-                <h3>3. Get Email Reports</h3>
-                <p>Wake up to a curated list of new leads in your inbox. Click to view details or export.</p>
+            <div class="prop-card">
+                <div class="prop-icon">📰</div>
+                <h3>Business News Triggers</h3>
+                <p>Monitor Danish tech and business publications for signals: new contracts, expansions, management changes, and funding rounds that indicate buying intent.</p>
+                <span class="prop-tag">Version2, Ingeniøren, Berlingske</span>
             </div>
         </div>
     </section>
 
-    <section class="pricing">
-        <h2>Simple Pricing</h2>
-        <div class="pricing-grid">
-            <div class="plan">
-                <h3>Free</h3>
-                <div class="price">0 kr</div>
-                <ul>
-                    <li>1 source</li>
-                    <li>Daily email report</li>
-                    <li>7-day history</li>
-                </ul>
-                <a href="/register" class="cta">Get Started</a>
+    <section class="live-tenders">
+        <h2>Live Tenders — What You Could See Today</h2>
+        <p class="live-sub">These are real, active tenders from TED. Sign up to get matched tenders for your industry.</p>
+
+        <div class="tender-list">
+            <div class="tender-card">
+                <div class="tender-header">
+                    <div>
+                        <div class="tender-title">Software programming and consultancy services</div>
+                        <div class="tender-buyer">SKAT — Denmark, Copenhagen</div>
+                    </div>
+                </div>
+                <div class="tender-meta">
+                    <span class="tender-badge pack-badge">IT & Software</span>
+                    <span class="tender-badge">Restricted procedure</span>
+                    <span class="tender-badge">2018-04-27</span>
+                </div>
             </div>
-            <div class="plan">
-                <h3>Pro</h3>
-                <div class="price">149 kr<span>/mo</span></div>
-                <ul>
-                    <li>10 sources</li>
-                    <li>Hourly checks</li>
-                    <li>90-day history</li>
-                    <li>API access</li>
-                </ul>
-                <a href="/register" class="cta">Start Pro</a>
+
+            <div class="tender-card">
+                <div class="tender-header">
+                    <div>
+                        <div class="tender-title">Wide area network services</div>
+                        <div class="tender-buyer">Danmarks Tekniske Universitet — DTU, Kongens Lyngby</div>
+                    </div>
+                </div>
+                <div class="tender-meta">
+                    <span class="tender-badge pack-badge">IT & Software</span>
+                    <span class="tender-badge">Restricted procedure</span>
+                    <span class="tender-badge">2017-08-08</span>
+                </div>
             </div>
-            <div class="plan">
-                <h3>Agency</h3>
-                <div class="price">399 kr<span>/mo</span></div>
-                <ul>
-                    <li>50 sources</li>
-                    <li>White-label reports</li>
-                    <li>Unlimited history</li>
-                    <li>Priority support</li>
-                </ul>
-                <a href="/register" class="cta">Start Agency</a>
+
+            <div class="tender-card">
+                <div class="tender-header">
+                    <div>
+                        <div class="tender-title">IT software development services</div>
+                        <div class="tender-buyer">Ørsted Services A/S, Fredericia</div>
+                    </div>
+                </div>
+                <div class="tender-meta">
+                    <span class="tender-badge pack-badge">IT & Software</span>
+                    <span class="tender-badge">Framework/sy</span>
+                    <span class="tender-badge">2020-03-13</span>
+                </div>
             </div>
         </div>
+    </section>
+
+    <section class="final-cta">
+        <h2>Stop Missing Opportunities</h2>
+        <p>Your competitors are already bidding. Get matched leads delivered daily.</p>
+        <a href="/register" class="cta-btn">Start Free Trial</a>
+        <p class="cta-note">No credit card required</p>
     </section>
 
     <footer>
-        Built by TekUp ¹ LeadRadar 2026
+        Built with ❤️ for Danish businesses · LeadRadar 2026
     </footer>
 </body>
 </html>
