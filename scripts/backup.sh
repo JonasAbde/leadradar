@@ -1,36 +1,25 @@
 #!/bin/bash
-# LeadRadar Database Backup
-# Usage: cron daily or manual
-# Keeps last 7 backups, runs silent (no stdout/stderr unless error)
+# LeadRadar daily DB backup
+# Run via cron at 03:00 or systemd timer
 
 set -euo pipefail
 
-DB="/home/ubuntu/leadradar/data/leadradar.db"
-BACKUP_DIR="/home/ubuntu/leadradar/backups"
-KEEP=7
+DB_FILE="/home/ubuntu/leadradar/data/leadradar.db"
+BACKUP_DIR="/home/ubuntu/backups"
+DATE=$(date +%Y-%m-%d_%H%M%S)
+BACKUP_FILE="$BACKUP_DIR/leadradar-$DATE.db"
+KEEP_DAYS=30
 
-# Ensure backup directory exists
+# Create backup dir if missing
 mkdir -p "$BACKUP_DIR"
 
-if [ ! -f "$DB" ]; then
-    echo "ERROR: Database not found at $DB" >&2
-    exit 1
-fi
+# SQLite backup (safe copy while DB is open)
+sqlite3 "$DB_FILE" ".backup '$BACKUP_FILE'"
 
-# Create timestamped backup using atomic copy
-TS=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="$BACKUP_DIR/leadradar_${TS}.db"
-cp "$DB" "$BACKUP_FILE"
+# Compress
+gzip -f "$BACKUP_FILE"
 
-# Verify backup was created and is non-empty
-if [ ! -s "$BACKUP_FILE" ]; then
-    echo "ERROR: Backup file is empty" >&2
-    rm -f "$BACKUP_FILE"
-    exit 1
-fi
+# Clean old backups (>30 days)
+find "$BACKUP_DIR" -name 'leadradar-*.db.gz' -mtime +$KEEP_DAYS -delete
 
-# Keep only the last N backups
-cd "$BACKUP_DIR"
-ls -1t leadradar_*.db 2>/dev/null | tail -n +$((KEEP + 1)) | xargs -r rm --
-
-exit 0
+echo "[$(date -Iseconds)] Backup created: ${BACKUP_FILE}.gz"

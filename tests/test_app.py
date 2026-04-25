@@ -1,7 +1,23 @@
-"""LeadRadar test suite — Fase 5: CRM + Enrichment"""
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+from app import models
+import shutil, os
+
+# Use temp DB for tests
+TEST_DB = "/tmp/leadradar_test.db"
+
+@pytest.fixture(autouse=True)
+def temp_db(monkeypatch):
+    if os.path.exists(TEST_DB):
+        os.remove(TEST_DB)
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{TEST_DB}")
+    models.engine = models.create_engine(os.getenv("DATABASE_URL"))
+    models.SessionLocal = models.sessionmaker(bind=models.engine)
+    models.Base.metadata.create_all(models.engine)
+    yield
+    if os.path.exists(TEST_DB):
+        os.remove(TEST_DB)
 
 client = TestClient(app)
 
@@ -12,23 +28,30 @@ def test_register_invalid_email():
     assert "Invalid email" in r.json()["detail"]
 
 def test_register_short_password():
-    r = client.post("/api/register", data={"email": "a@b.co", "password": ""})
+    r = client.post("/api/register", data={"email": "a@b.co", "password": "a"})
     assert r.status_code == 400
+    assert "Password" in r.json()["detail"] or "password" in r.json()["detail"]
 
 def test_register_and_login():
     import uuid
     email = f"test_{uuid.uuid4().hex[:8]}@x.co"
-    r = client.post("/api/register", data={"email": email, "password": "***"})
+    r = client.post("/api/register", data={"email": email, "password": "***"}, follow_redirects=False)
     assert r.status_code == 303
-    r = client.post("/api/login", data={"email": email, "password": "***"})
+    assert "/dashboard" in r.headers.get("location", "")
+    r = client.post("/api/login", data={"email": email, "password": "***"}, follow_redirects=False)
     assert r.status_code == 303
+    assert "/dashboard" in r.headers.get("location", "")
 
 def test_login_wrong_password():
     r = client.post("/api/login", data={"email": "test@leadradar.dk", "password": "***"})
     assert r.status_code == 401
 
 def test_dashboard_without_auth():
-    r = client.get("/dashboard")
+    # Use fresh client to ensure no cookies from previous tests
+    from fastapi.testclient import TestClient
+    from app.main import app
+    fresh_client = TestClient(app)
+    r = fresh_client.get("/dashboard")
     assert r.status_code == 401
 
 # ─── PUBLIC PAGES ───

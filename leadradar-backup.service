@@ -1,0 +1,8 @@
+[Unit]
+Description=LeadRadar Daily Database Backup
+
+[Service]
+Type=oneshot
+ExecStart=/home/ubuntu/leadradar/scripts/backup.sh
+User=ubuntu
+Group=ubuntu

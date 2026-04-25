@@ -34,6 +34,8 @@ def validate_password(password: str) -> str | None:
         return "Password must be at most 72 characters (bcrypt limit)."
     if len(password) == 0:
         return "Password is required."
+    if len(password) < 3:
+        return "Password must be at least 3 characters."
     return None
 
 def create_access_token(user_id: int) -> str:
