@@ -3,25 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get Started — LeadRadar</title>
+    <title>Select Your Pack — LeadRadar</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .card { background: white; padding: 48px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
-        h1 { font-size: 24px; margin-bottom: 8px; }
-        p { color: #64748b; margin-bottom: 24px; }
-        input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 16px; font-size: 16px; }
-        button { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #1e293b; }
+        .nav { background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .nav a { color: #2563eb; text-decoration: none; font-weight: 600; }
+        .nav .right { display: flex; align-items: center; gap: 16px; }
+        .container { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { font-size: 28px; margin-bottom: 8px; }
+        .header p { color: #64748b; font-size: 16px; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+        .card {
+            background: white; border-radius: 12px; border: 2px solid #e2e8f0;
+            padding: 24px; cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .card:hover { border-color: #2563eb; box-shadow: 0 4px 12px rgba(37,99,235,0.1); transform: translateY(-2px); }
+        .card.selected { border-color: #2563eb; background: #eff6ff; }
+        .card .icon { font-size: 40px; margin-bottom: 12px; }
+        .card h3 { font-size: 18px; margin-bottom: 6px; }
+        .card p { font-size: 13px; color: #64748b; margin-bottom: 12px; line-height: 1.5; }
+        .card .cpv { font-size: 11px; color: #94a3b8; }
+        .card .check {
+            position: absolute; top: 12px; right: 12px; width: 24px; height: 24px;
+            background: #2563eb; color: white; border-radius: 50%; display: none;
+            align-items: center; justify-content: center; font-size: 14px;
+        }
+        .card.selected .check { display: flex; }
+        .btn { display: inline-block; padding: 12px 32px; border-radius: 8px; font-size: 16px; font-weight: 600; border: none; cursor: pointer; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+        .btn-secondary { background: white; color: #2563eb; border: 1px solid #e2e8f0; }
+        .btn-secondary:hover { background: #f8fafc; }
+        .footer { margin-top: 40px; text-align: center; display: flex; justify-content: center; gap: 12px; align-items: center; }
+        .error-box { background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; margin-bottom: 24px; color: #92400e; }
+        .error-box h4 { margin-bottom: 4px; }
+        .error-box p { font-size: 13px; }
+        .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #e2e8f0; border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-overlay { text-align: center; padding: 24px; color: #64748b; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>📡 Welcome to LeadRadar</h1>
-        <p>Enter your email to start monitoring leads.</p>
-        <form action="/api/onboard" method="post">
-            <input type="email" name="email" placeholder="you@company.dk" required>
-            <button type="submit">Create Account</button>
+    <nav class="nav">
+        <a href="/">📡 LeadRadar</a>
+        <div class="right">
+            <span>{{ user.email }}</span>
+            <a href="/api/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Choose Your Lead Pack</h1>
+            <p>Select the industry that best matches your business. We'll configure your first source and find matching EU tenders.</p>
+        </div>
+
+        {% if try_broader %}
+        <div class="error-box">
+            <h4>⚠️ No tenders found with that pack</h4>
+            <p>
+                There are currently no matching EU tenders in Denmark for this pack.
+                Try selecting a different pack — broader categories like <strong>Construction</strong> or <strong>Consulting</strong> often yield more results.
+            </p>
+        </div>
+        {% endif %}
+
+        <form id="packForm" method="post" style="display: none;">
+            <input type="hidden" name="pack_slug" id="packSlug">
         </form>
+
+        <div class="grid">
+            {% for slug, pack in packs.items() %}
+            <div class="card" onclick="selectPack('{{ slug }}')" id="card-{{ slug }}">
+                <div class="check">✓</div>
+                <div class="icon">
+                    {% if slug == 'cleaning_facility' %}🧹
+                    {% elif slug == 'it_software' %}💻
+                    {% elif slug == 'construction' %}🏗️
+                    {% elif slug == 'consulting' %}📋
+                    {% endif %}
+                </div>
+                <h3>{{ pack.name }}</h3>
+                <p>
+                    {% if slug == 'cleaning_facility' %}
+                    Monitor tenders for cleaning, janitorial, and facility maintenance contracts across Denmark.
+                    {% elif slug == 'it_software' %}
+                    Track IT infrastructure, software development, and digital transformation procurement opportunities.
+                    {% elif slug == 'construction' %}
+                    Find building, civil engineering, renovation, and infrastructure project tenders.
+                    {% elif slug == 'consulting' %}
+                    Discover management consulting, advisory, and business service contract opportunities.
+                    {% endif %}
+                </p>
+                <div class="cpv">{{ pack.cpv_codes|length }} CPV codes • {{ pack.country }} • {{ pack.keywords|length }} keywords</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="footer">
+            <span id="selectedText" style="color: #64748b; font-size: 14px;">Select a pack to continue</span>
+            <button type="button" class="btn btn-primary" id="confirmBtn" disabled onclick="submitPack()">
+                Start Scanning →
+            </button>
+        </div>
     </div>
+
+    <script>
+    let selectedPack = null;
+
+    function selectPack(slug) {
+        selectedPack = slug;
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+        document.getElementById('card-' + slug).classList.add('selected');
+        document.getElementById('packSlug').value = slug;
+        document.getElementById('confirmBtn').disabled = false;
+
+        const pack = {
+            'cleaning_facility': 'Cleaning & Facility',
+            'it_software': 'IT & Software',
+            'construction': 'Construction & Infrastructure',
+            'consulting': 'Consulting & Business',
+        };
+        document.getElementById('selectedText').textContent = `Selected: ${pack[slug]}`;
+    }
+
+    async function submitPack() {
+        if (!selectedPack) return;
+        const btn = document.getElementById('confirmBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Configuring & Scanning...';
+
+        try {
+            const payload = new FormData();
+            payload.append('pack_slug', selectedPack);
+
+            const resp = await fetch('/api/onboard/pack', {
+                method: 'POST',
+                body: payload,
+            });
+            const data = await resp.json();
+
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            } else if (data.no_results) {
+                window.location.href = '/onboard?try_broader=true';
+            } else {
+                window.location.href = `/dashboard?onboard=success&leads=${data.new_leads}`;
+            }
+        } catch (e) {
+            btn.disabled = false;
+            btn.textContent = 'Start Scanning →';
+            alert('Error configuring pack. Please try again.');
+        }
+    }
+    </script>
 </body>
 </html>

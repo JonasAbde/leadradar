@@ -96,6 +96,12 @@ class Lead(Base):
     is_stale = Column(Boolean, default=False)                # whether notice is expired
     last_seen_at = Column(String, nullable=True)             # last fetch timestamp
     
+    # ── Lead actions ──
+    is_relevant = Column(Boolean, nullable=True)             # user: relevant (True) or not (False)
+    notes = Column(Text, nullable=True)                      # user notes
+    follow_up_date = Column(String, nullable=True)           # follow-up reminder date
+    score_reasons = Column(Text, nullable=True)              # scoring explanation text
+    
     user = relationship("User", back_populates="leads")
 
 class CRMSyncQueue(Base):

@@ -34,6 +34,10 @@
         .btn-danger:hover { background: #dc2626; }
         .btn-success { background: #22c55e; }
         .btn-success:hover { background: #16a34a; }
+        .btn-icon { padding: 6px 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; font-size: 14px; transition: background 0.15s; }
+        .btn-icon:hover { background: #e2e8f0; }
+        .btn-icon.relevant { background: #dcfce7; border-color: #86efac; color: #166534; }
+        .btn-icon.not-relevant { opacity: 0.5; text-decoration: line-through; }
         .leads { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; }
         .leads-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .leads h3 { font-size: 16px; }
@@ -43,7 +47,11 @@
         .lead h4 { font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
         .lead p { font-size: 13px; color: #64748b; margin: 4px 0; }
         .lead .meta { font-size: 12px; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; align-items: center; }
-        .lead .actions { display: flex; gap: 8px; margin-top: 8px; }
+        .lead .actions { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+        .lead .actions-right { display: flex; gap: 6px; margin-left: auto; align-items: center; }
+        .note-display { font-size: 12px; color: #64748b; background: #f8fafc; padding: 4px 8px; border-radius: 6px; margin-top: 4px; display: none; }
+        .note-display.show { display: block; }
+        .follow-up-badge { font-size: 11px; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 12px; }
         .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
         .badge-new { background: #dcfce7; color: #166534; }
         .badge-job { background: #fef3c7; color: #92400e; }
@@ -256,7 +264,9 @@
                         {% if lead.phone %}<span>📞 {{ lead.phone }}</span>{% endif %}
                         {% if lead.contact_email %}<span>✉️ {{ lead.contact_email }}</span>{% endif %}
                         {% if lead.cvr_number %}<span>CVR {{ lead.cvr_number }}</span>{% endif %}
+                        {% if lead.follow_up_date %}<span class="follow-up-badge">📅 Follow-up: {{ lead.follow_up_date }}</span>{% endif %}
                     </div>
+                    <div class="note-display {% if lead.notes %}show{% endif %}" id="note-display-{{ lead.id }}">{{ lead.notes or '' }}</div>
                     <div class="actions">
                         {% if lead.url and lead.url != '#' %}
                         <a href="{{ lead.url }}" target="_blank" class="btn btn-sm btn-outline">View Source</a>
@@ -271,6 +281,19 @@
                             <option value="won" {{ 'selected' if lead.status == 'won' }}>Won</option>
                             <option value="lost" {{ 'selected' if lead.status == 'lost' }}>Lost</option>
                         </select>
+                        <div class="actions-right">
+                            <button class="btn-icon {% if lead.is_relevant %}relevant{% endif %} {% if lead.is_relevant == false %}not-relevant{% endif %}"
+                                    onclick="toggleRelevant({{ lead.id }})"
+                                    title="Mark relevant / not relevant"
+                                    id="relev-btn-{{ lead.id }}">
+                                {% if lead.is_relevant == true %}✓ Relevant
+                                {% elif lead.is_relevant == false %}✗ Skip
+                                {% else %}?
+                                {% endif %}
+                            </button>
+                            <button class="btn-icon" onclick="toggleNote({{ lead.id }})" title="Add note">📝</button>
+                            <button class="btn-icon" onclick="setFollowUp({{ lead.id }})" title="Set follow-up date">📅</button>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
@@ -467,6 +490,68 @@
         if (!alertOpen) loadAlerts();
     }, 30000);
     loadAlerts(); // initial load
+
+    // ── Lead Actions ──────────────────────────────────────────────────
+    async function toggleRelevant(leadId) {
+        const btn = document.getElementById(`relev-btn-${leadId}`);
+        if (!btn) return;
+        const isCurrently = btn.classList.contains('relevant');
+        const skip = btn.classList.contains('not-relevant');
+        const newVal = !skip ? 'false' : ''; // cycle: none -> relevant -> skip -> none
+        const payload = new FormData();
+        payload.append('is_relevant', isCurrently ? 'false' : 'true');
+
+        await fetch(`/api/leads/${leadId}/relevant`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `is_relevant=${isCurrently ? 'false' : 'true'}`,
+        });
+        btn.textContent = isCurrently ? '✗ Skip' : '✓ Relevant';
+        btn.className = 'btn-icon' + (isCurrently ? ' not-relevant' : ' relevant');
+    }
+
+    function toggleNote(leadId) {
+        const display = document.getElementById(`note-display-${leadId}`);
+        if (!display) return;
+        if (display.classList.contains('show')) {
+            // Already visible — replace with input to edit
+            const current = display.textContent.trim();
+            const input = prompt('Edit note:', current);
+            if (input !== null) {
+                saveNote(leadId, input);
+            }
+        } else {
+            // Show note area with input
+            let input;
+            input = prompt('Add note:', '');
+            if (input !== null) {
+                saveNote(leadId, input);
+            }
+        }
+    }
+
+    async function saveNote(leadId, text) {
+        const display = document.getElementById(`note-display-${leadId}`);
+        if (!display) return;
+        await fetch(`/api/leads/${leadId}/note`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `note=${encodeURIComponent(text)}`,
+        });
+        display.textContent = text;
+        display.classList.toggle('show', !!text);
+    }
+
+    async function setFollowUp(leadId) {
+        const dateStr = prompt('Follow-up date (YYYY-MM-DD):', '');
+        if (dateStr === null) return;
+        await fetch(`/api/leads/${leadId}/follow-up`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `follow_up_date=${encodeURIComponent(dateStr)}`,
+        });
+        location.reload();
+    }
     </script>
 </body>
 </html>

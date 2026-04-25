@@ -25,6 +25,7 @@ from .mail import send_daily_report
 from .stripe_config import get_checkout_session_url, handle_webhook, SUBSCRIPTION_LIMITS
 from .cvr_enrichment import enrich_lead
 from .alert_dispatcher import create_alert, dispatch_alert, get_or_create_prefs
+from .lead_packs import all_packs, get_pack
 
 app = FastAPI(title="LeadRadar", description="Autonomous lead monitoring for SMBs")
 
@@ -79,6 +80,101 @@ def login_page(request: Request):
 @app.get("/register", response_class=HTMLResponse)
 def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
+
+# ============== ONBOARDING ==============
+
+@app.get("/onboard", response_class=HTMLResponse)
+def onboard_page(
+    request: Request,
+    try_broader: bool = False,
+    user: models.User = Depends(get_current_user),
+    db: Session = Depends(models.get_db)
+):
+    """Show pack selection for first-time users."""
+    return templates.TemplateResponse("onboard.html", {
+        "request": request,
+        "user": user,
+        "packs": all_packs(),
+        "try_broader": try_broader,
+    })
+
+@app.post("/api/onboard/pack")
+@limiter.limit("5/minute")
+def onboard_pack(
+    request: Request,
+    pack_slug: str = Form(...),
+    user: models.User = Depends(get_current_user),
+    db: Session = Depends(models.get_db)
+):
+    """Create a TED source configured with the selected pack and run initial scrape."""
+    pack = get_pack(pack_slug)
+    if not pack:
+        raise HTTPException(400, f"Unknown pack: {pack_slug}")
+
+    # Check source limit
+    limits = SUBSCRIPTION_LIMITS.get(user.subscription_tier, SUBSCRIPTION_LIMITS["free"])
+    current_count = db.query(models.Source).filter(models.Source.user_id == user.id).count()
+    if current_count >= limits["sources"]:
+        raise HTTPException(403, "Source limit reached. Upgrade to add more.")
+
+    # Create the source with pack config
+    config = json.dumps({"pack": pack_slug, "country": pack.get("country", "DNK")})
+    source = models.Source(
+        user_id=user.id,
+        name=f"EU Tenders — {pack['name']}",
+        source_type="ted_eu",
+        url="https://ted.europa.eu",
+        config=config,
+    )
+    db.add(source)
+    db.commit()
+    db.refresh(source)
+    logger.info(f"User {user.id} onboarded with pack '{pack_slug}' -> source {source.id}")
+
+    # Run the first scrape
+    scraper = get_scraper(source)
+    results = scraper.scrape()
+
+    new_leads = 0
+    for r in results:
+        existing = db.query(models.Lead).filter(
+            models.Lead.user_id == user.id,
+            models.Lead.title == r["title"]
+        ).first()
+
+        if not existing:
+            lead = models.Lead(
+                user_id=user.id,
+                source_id=source.id,
+                title=r["title"],
+                description=r.get("description", ""),
+                url=r.get("url", ""),
+                company=r.get("company", ""),
+                location=r.get("location", ""),
+                score=r.get("score", 0),
+            )
+            db.add(lead)
+            db.flush()
+            alert = create_alert(
+                db, user_id=user.id,
+                source_type="lead", event="new_lead",
+                message=f"Ny lead: {lead.title}",
+                lead_id=lead.id,
+                link_path=f"/dashboard?lead={lead.id}",
+                commit=False,
+            )
+            dispatch_alert(db, alert, commit=False)
+            new_leads += 1
+
+    source.last_scraped = datetime.utcnow()
+    db.commit()
+    logger.info(f"Onboard scrape: {len(results)} results, {new_leads} new leads")
+
+    # If 0 results, signal the client to show "try broader pack" suggestion
+    if new_leads == 0 and len(results) == 0:
+        return {"ok": True, "no_results": True, "source_id": source.id}
+
+    return {"ok": True, "source_id": source.id, "new_leads": new_leads, "scraped": len(results)}
 
 # ============== AUTH API ==============
 
@@ -166,29 +262,124 @@ def dashboard(
     user: models.User = Depends(get_current_user),
     db: Session = Depends(models.get_db)
 ):
-    leads = db.query(models.Lead).filter(
-        models.Lead.user_id == user.id
-    ).order_by(models.Lead.created_at.desc()).limit(100).all()
-    
+    # Query params for pagination, filters, sort, search
+    page = max(1, int(request.query_params.get("page", 1)))
+    per_page = min(100, max(1, int(request.query_params.get("per_page", 20))))
+    sort = request.query_params.get("sort", "newest")
+    search = request.query_params.get("search", "").strip()
+    filter_source = request.query_params.get("filter_source", "").strip()
+    filter_score_min = request.query_params.get("filter_score_min", "").strip()
+    filter_score_max = request.query_params.get("filter_score_max", "").strip()
+    filter_deadline = request.query_params.get("filter_deadline", "").strip()
+
+    # Build base query
+    q = db.query(models.Lead).filter(models.Lead.user_id == user.id)
+
+    # Search: buyer/title
+    if search:
+        term = f"%{search}%"
+        q = q.filter(
+            (models.Lead.title.ilike(term)) |
+            (models.Lead.company.ilike(term))
+        )
+
+    # Filter by source type
+    if filter_source:
+        q = q.join(models.Source).filter(models.Source.source_type == filter_source)
+
+    # Filter by score range
+    if filter_score_min:
+        try:
+            q = q.filter(models.Lead.score >= int(filter_score_min))
+        except ValueError:
+            pass
+    if filter_score_max:
+        try:
+            q = q.filter(models.Lead.score <= int(filter_score_max))
+        except ValueError:
+            pass
+
+    # Filter: show only leads with pending deadline (deadline within N days or specific)
+    if filter_deadline:
+        if filter_deadline == "urgent":
+            # deadline within 7 days
+            from datetime import datetime, timedelta
+            today = datetime.utcnow().strftime("%Y-%m-%d")
+            week = (datetime.utcnow() + timedelta(days=7)).strftime("%Y-%m-%d")
+            q = q.filter(models.Lead.deadline_date != None).filter(
+                models.Lead.deadline_date <= week
+            ).filter(models.Lead.deadline_date >= today)
+        elif filter_deadline == "upcoming":
+            # deadline within 30 days
+            from datetime import datetime, timedelta
+            today = datetime.utcnow().strftime("%Y-%m-%d")
+            month = (datetime.utcnow() + timedelta(days=30)).strftime("%Y-%m-%d")
+            q = q.filter(models.Lead.deadline_date != None).filter(
+                models.Lead.deadline_date <= month
+            ).filter(models.Lead.deadline_date >= today)
+        elif filter_deadline == "has_deadline":
+            q = q.filter(models.Lead.deadline_date != None).filter(models.Lead.deadline_date != "")
+
+    # Sort
+    if sort == "score":
+        q = q.order_by(models.Lead.score.desc(), models.Lead.created_at.desc())
+    elif sort == "deadline":
+        q = q.order_by(models.Lead.deadline_date.asc())
+    else:  # newest
+        q = q.order_by(models.Lead.created_at.desc())
+
+    # Pagination
+    total = q.count()
+    total_pages = max(1, (total + per_page - 1) // per_page)
+    page = min(page, total_pages)
+    offset = (page - 1) * per_page
+    leads = q.offset(offset).limit(per_page).all()
+
+    # Sources list
     sources = db.query(models.Source).filter(
         models.Source.user_id == user.id
     ).all()
-    
+
     limits = SUBSCRIPTION_LIMITS.get(user.subscription_tier, SUBSCRIPTION_LIMITS["free"])
-    
+
     today = datetime.utcnow().date()
-    new_today = len([l for l in leads if l.created_at.date() == today])
-    
+    all_leads_count = db.query(models.Lead).filter(
+        models.Lead.user_id == user.id
+    ).count()
+    new_today = db.query(models.Lead).filter(
+        models.Lead.user_id == user.id,
+        models.Lead.created_at >= datetime.utcnow().replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+    ).count()
+
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "user": user,
         "leads": leads,
         "sources": sources,
-        "lead_count": len(leads),
+        "lead_count": total,
+        "all_leads_count": all_leads_count,
         "new_today": new_today,
         "limits": limits,
         "source_limit": limits["sources"],
-        "can_add_source": len(sources) < limits["sources"]
+        "can_add_source": len(sources) < limits["sources"],
+        "pagination": {
+            "page": page,
+            "per_page": per_page,
+            "total": total,
+            "total_pages": total_pages,
+            "has_prev": page > 1,
+            "has_next": page < total_pages,
+        },
+        "filters": {
+            "sort": sort,
+            "search": search,
+            "filter_source": filter_source,
+            "filter_score_min": filter_score_min,
+            "filter_score_max": filter_score_max,
+            "filter_deadline": filter_deadline,
+        },
     })
 
 # ============== API ENDPOINTS ==============
@@ -293,7 +484,15 @@ def trigger_scrape(
                 url=r.get("url", ""),
                 company=r.get("company", ""),
                 location=r.get("location", ""),
-                score=r.get("score", 0)
+                score=r.get("score", 0),
+                score_reasons=r.get("score_reasons", ""),
+                # TED-specific fields
+                notice_identifier=r.get("notice_identifier"),
+                cpv_values=json.dumps(r["cpv_values"]) if r.get("cpv_values") and isinstance(r.get("cpv_values"), list) else r.get("cpv_values"),
+                deadline_date=r.get("deadline_date"),
+                estimated_value=r.get("estimated_value"),
+                notice_subtype=r.get("notice_subtype"),
+                data_source=r.get("source_type", "scraped"),
             )
             db.add(lead)
             db.flush()
@@ -348,7 +547,14 @@ def scrape_all(
                     contact_email=r.get("contact_email", None),
                     phone=r.get("phone", None),
                     location=r.get("location", ""),
-                    score=r.get("score", 0)
+                    score=r.get("score", 0),
+                    score_reasons=r.get("score_reasons", ""),
+                    notice_identifier=r.get("notice_identifier"),
+                    cpv_values=json.dumps(r["cpv_values"]) if r.get("cpv_values") and isinstance(r.get("cpv_values"), list) else r.get("cpv_values"),
+                    deadline_date=r.get("deadline_date"),
+                    estimated_value=r.get("estimated_value"),
+                    notice_subtype=r.get("notice_subtype"),
+                    data_source=r.get("source_type", "scraped"),
                 )
                 
                 # Enrich with CVR API
@@ -409,6 +615,63 @@ def update_lead_status(
     lead.status = status
     db.commit()
     return {"status": "ok"}
+
+@app.post("/api/leads/{lead_id}/relevant")
+def update_lead_relevant(
+    lead_id: int,
+    is_relevant: str = Form(...),
+    user: models.User = Depends(get_current_user),
+    db: Session = Depends(models.get_db)
+):
+    """Mark a lead as relevant or not relevant."""
+    lead = db.query(models.Lead).filter(
+        models.Lead.id == lead_id,
+        models.Lead.user_id == user.id
+    ).first()
+    if not lead:
+        raise HTTPException(404, "Lead not found")
+    
+    lead.is_relevant = is_relevant.lower() in ("true", "1", "yes")
+    db.commit()
+    return {"status": "ok", "is_relevant": lead.is_relevant}
+
+@app.post("/api/leads/{lead_id}/note")
+def update_lead_note(
+    lead_id: int,
+    note: str = Form(...),
+    user: models.User = Depends(get_current_user),
+    db: Session = Depends(models.get_db)
+):
+    """Add/update a note on a lead."""
+    lead = db.query(models.Lead).filter(
+        models.Lead.id == lead_id,
+        models.Lead.user_id == user.id
+    ).first()
+    if not lead:
+        raise HTTPException(404, "Lead not found")
+    
+    lead.notes = note
+    db.commit()
+    return {"status": "ok"}
+
+@app.post("/api/leads/{lead_id}/follow-up")
+def update_lead_follow_up(
+    lead_id: int,
+    follow_up_date: str = Form(...),
+    user: models.User = Depends(get_current_user),
+    db: Session = Depends(models.get_db)
+):
+    """Set a follow-up date for a lead."""
+    lead = db.query(models.Lead).filter(
+        models.Lead.id == lead_id,
+        models.Lead.user_id == user.id
+    ).first()
+    if not lead:
+        raise HTTPException(404, "Lead not found")
+    
+    lead.follow_up_date = follow_up_date if follow_up_date else None
+    db.commit()
+    return {"status": "ok", "follow_up_date": lead.follow_up_date}
 
 @app.post("/api/leads/{lead_id}/sync-crm")
 @limiter.limit("20/minute")
