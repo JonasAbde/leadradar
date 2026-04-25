@@ -63,6 +63,7 @@ def send_daily_report(to_email: str, leads: list, dashboard_url: str = "#"):
     smtp_port = int(os.getenv("SMTP_PORT", "587"))
     smtp_user = os.getenv("SMTP_USER")
     smtp_pass = os.getenv("SMTP_PASS")
+    from_email = os.getenv("FROM_EMAIL", smtp_user)
     
     if not smtp_user or not smtp_pass:
         print("SMTP not configured. Would send to", to_email)
@@ -79,7 +80,7 @@ def send_daily_report(to_email: str, leads: list, dashboard_url: str = "#"):
         
         msg = MIMEMultipart('alternative')
         msg['Subject'] = f"LeadRadar Daily — {len(leads)} New Leads"
-        msg['From'] = smtp_user
+        msg['From'] = from_email
         msg['To'] = to_email
         
         msg.attach(MIMEText(html, 'html'))
@@ -101,6 +102,7 @@ def send_instant_alert_email(to_email: str, subject: str, body: str, link: str =
     smtp_port = int(os.getenv("SMTP_PORT", "587"))
     smtp_user = os.getenv("SMTP_USER")
     smtp_pass = os.getenv("SMTP_PASS")
+    from_email = os.getenv("FROM_EMAIL", smtp_user)
 
     if not smtp_user or not smtp_pass:
         print(f"[ALERT EMAIL — MOCK] To: {to_email} | Subject: {subject} | Link: {link}")
@@ -117,7 +119,7 @@ def send_instant_alert_email(to_email: str, subject: str, body: str, link: str =
         """
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
-        msg['From'] = smtp_user
+        msg['From'] = from_email
         msg['To'] = to_email
         msg.attach(MIMEText(html, 'html'))
 

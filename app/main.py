@@ -372,6 +372,20 @@ def register(
     db.refresh(user)
     logger.info(f"New user registered: {email}")
     
+    # Send verification email
+    try:
+        verify_token = generate_verification_token(email)
+        verify_url = f"{request.base_url}verify-email/{verify_token}"
+        from .mail import send_instant_alert_email
+        send_instant_alert_email(
+            to_email=email,
+            subject="Verify your LeadRadar account",
+            body=f"Welcome to LeadRadar! Click to verify your email: {verify_url}",
+            link=verify_url
+        )
+    except Exception as e:
+        logger.warning(f"Failed to send verification email: {e}")
+    
     # Create token and redirect
     token = create_access_token(user.id)
     response = RedirectResponse("/dashboard", status_code=303)
@@ -1110,3 +1124,139 @@ def health():
         "scheduler": scheduler_status,
         "ted_api": ted_status
     }
+
+# ============== STRIPE BILLING ==============
+
+@app.post("/api/create-checkout-session")
+@limiter.limit("10/minute")
+def create_checkout(
+    request: Request,
+    tier: str = Form(...),
+    user: models.User = Depends(get_current_user)
+):
+    """Create a Stripe Checkout session for subscription upgrade."""
+    if tier not in ("pro", "agency"):
+        raise HTTPException(400, "Invalid tier")
+    try:
+        url = get_checkout_session_url(user.email, tier)
+        return {"url": url}
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        logger.error(f"Stripe checkout error: {e}")
+        raise HTTPException(500, "Payment service unavailable")
+
+@app.get("/api/billing/portal")
+def billing_portal(user: models.User = Depends(get_current_user)):
+    """Redirect to Stripe Customer Portal for subscription management."""
+    import stripe
+    if not user.stripe_customer_id:
+        raise HTTPException(400, "No active subscription")
+    try:
+        session = stripe.billing_portal.Session.create(
+            customer=user.stripe_customer_id,
+            return_url=f"{request.base_url}dashboard?tab=billing"
+        )
+        return {"url": session.url}
+    except Exception as e:
+        logger.error(f"Portal error: {e}")
+        raise HTTPException(500, "Billing portal unavailable")
+
+@app.post("/api/stripe/webhook")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhook events for subscription lifecycle."""
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature", "")
+    
+    event = handle_webhook(payload, sig_header)
+    if not event:
+        raise HTTPException(400, "Invalid webhook")
+    
+    db = next(models.get_db())
+    try:
+        if event["type"] == "checkout.session.completed":
+            session = event["data"]["object"]
+            customer_id = session.get("customer")
+            subscription_id = session.get("subscription")
+            customer_email = session.get("customer_email")
+            
+            user = db.query(models.User).filter(models.User.email == customer_email).first()
+            if user:
+                user.stripe_customer_id = customer_id
+                user.stripe_subscription_id = subscription_id
+                # Determine tier from line items or metadata
+                user.subscription_tier = "pro"  # Default, can be refined
+                db.commit()
+                logger.info(f"Stripe subscription activated for {customer_email}")
+        
+        elif event["type"] == "invoice.payment_failed":
+            subscription_id = event["data"]["object"].get("subscription")
+            user = db.query(models.User).filter(models.User.stripe_subscription_id == subscription_id).first()
+            if user:
+                user.subscription_status = "past_due"
+                db.commit()
+        
+        elif event["type"] == "customer.subscription.deleted":
+            subscription_id = event["data"]["object"].get("id")
+            user = db.query(models.User).filter(models.User.stripe_subscription_id == subscription_id).first()
+            if user:
+                user.subscription_tier = "free"
+                user.subscription_status = "canceled"
+                user.stripe_subscription_id = None
+                db.commit()
+                logger.info(f"Subscription canceled for user {user.email}")
+    finally:
+        db.close()
+    
+    return {"status": "ok"}
+
+# ============== EMAIL VERIFICATION ==============
+
+from itsdangerous import URLSafeTimedSerializer
+
+def get_email_serializer():
+    secret = os.getenv("SECRET_KEY", "dev")
+    return URLSafeTimedSerializer(secret)
+
+def generate_verification_token(email: str) -> str:
+    return get_email_serializer().dumps(email, salt="email-verify")
+
+def verify_token(token: str, max_age: int = 86400) -> str | None:
+    try:
+        return get_email_serializer().loads(token, salt="email-verify", max_age=max_age)
+    except Exception:
+        return None
+
+@app.get("/verify-email/{token}")
+def verify_email(token: str, db: Session = Depends(models.get_db)):
+    """Verify user email via token link."""
+    email = verify_token(token)
+    if not email:
+        raise HTTPException(400, "Invalid or expired verification link")
+    
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+    
+    user.email_confirmed = True
+    db.commit()
+    return RedirectResponse("/login?verified=1", status_code=303)
+
+@app.post("/api/resend-verification")
+@limiter.limit("3/minute")
+def resend_verification(request: Request, user: models.User = Depends(get_current_user)):
+    """Resend email verification link."""
+    if user.email_confirmed:
+        return {"status": "already_verified"}
+    
+    token = generate_verification_token(user.email)
+    verify_url = f"{request.base_url}verify-email/{token}"
+    
+    from .mail import send_instant_alert_email
+    send_instant_alert_email(
+        to_email=user.email,
+        subject="Verify your LeadRadar account",
+        body=f"Click to verify your email: {verify_url}",
+        link=verify_url
+    )
+    return {"status": "sent"}
