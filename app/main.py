@@ -52,6 +52,14 @@ def sanitize_source_name(name: str) -> str:
 # Templates
 templates = Jinja2Templates(directory="templates")
 
+# Custom filter for pagination query-string encoding
+import urllib.parse as _urllib
+def _to_urlencode(d):
+    if isinstance(d, dict):
+        d = {k: v for k, v in d.items() if v not in (None, '')}
+    return _urllib.urlencode(d, doseq=True) if d else ""
+templates.env.filters["to_urlencode"] = _to_urlencode
+
 # Init DB on startup
 @app.on_event("startup")
 def startup():

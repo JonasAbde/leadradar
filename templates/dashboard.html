@@ -28,30 +28,27 @@
         .btn { display: inline-block; padding: 10px 16px; border-radius: 8px; background: #2563eb; color: white; text-decoration: none; font-size: 14px; border: none; cursor: pointer; font-weight: 500; }
         .btn:hover { background: #1d4ed8; }
         .btn-sm { padding: 6px 12px; font-size: 13px; }
+        .btn-xs { padding: 3px 8px; font-size: 11px; }
         .btn-outline { background: white; color: #2563eb; border: 1px solid #2563eb; }
         .btn-outline:hover { background: #eff6ff; }
         .btn-danger { background: #ef4444; }
         .btn-danger:hover { background: #dc2626; }
         .btn-success { background: #22c55e; }
         .btn-success:hover { background: #16a34a; }
-        .btn-icon { padding: 6px 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; font-size: 14px; transition: background 0.15s; }
-        .btn-icon:hover { background: #e2e8f0; }
-        .btn-icon.relevant { background: #dcfce7; border-color: #86efac; color: #166534; }
-        .btn-icon.not-relevant { opacity: 0.5; text-decoration: line-through; }
+        .btn-ghost { background: transparent; color: #64748b; border: 1px solid #e2e8f0; }
+        .btn-ghost:hover { background: #f1f5f9; }
         .leads { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; }
-        .leads-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .leads-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .leads h3 { font-size: 16px; }
         .lead { padding: 16px; border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
         .lead:hover { background: #f8fafc; }
         .lead:last-child { border-bottom: none; }
-        .lead h4 { font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .lead h4 { font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .lead p { font-size: 13px; color: #64748b; margin: 4px 0; }
-        .lead .meta { font-size: 12px; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; align-items: center; }
-        .lead .actions { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
-        .lead .actions-right { display: flex; gap: 6px; margin-left: auto; align-items: center; }
-        .note-display { font-size: 12px; color: #64748b; background: #f8fafc; padding: 4px 8px; border-radius: 6px; margin-top: 4px; display: none; }
-        .note-display.show { display: block; }
-        .follow-up-badge { font-size: 11px; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 12px; }
+        .lead .meta { font-size: 12px; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .lead .actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+        .lead .lead-actions { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
+
         .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
         .badge-new { background: #dcfce7; color: #166534; }
         .badge-job { background: #fef3c7; color: #92400e; }
@@ -62,17 +59,23 @@
         .badge-crm-failed { background: #fee2e2; color: #991b1b; }
         .badge-crm-pending { background: #fef3c7; color: #92400e; }
         .badge-crm-none { background: #f1f5f9; color: #64748b; }
+        .badge-ted { background: #fef3c7; color: #92400e; }
+        .badge-urgent { background: #fee2e2; color: #991b1b; }
+        .badge-relevant { background: #dcfce7; color: #166534; }
+        .badge-not-relevant { background: #f1f5f9; color: #64748b; }
         .status { font-size: 11px; padding: 2px 8px; border-radius: 12px; cursor: pointer; border: none; }
         .status-new { background: #fef3c7; color: #92400e; }
         .status-contacted { background: #dbeafe; color: #1e40af; }
         .status-qualified { background: #dcfce7; color: #166534; }
         .status-won { background: #ecfdf5; color: #065f46; }
         .status-lost { background: #f1f5f9; color: #64748b; }
+
         form { margin-top: 16px; }
         input, select { width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 8px; font-size: 14px; }
         input:focus, select:focus { outline: none; border-color: #2563eb; }
         .empty { text-align: center; padding: 48px; color: #94a3b8; }
-        .toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .toolbar input, .toolbar select { margin-bottom: 0; width: auto; min-width: 140px; }
         .limit-warning { background: #fef3c7; color: #92400e; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
         .score { font-size: 11px; font-weight: 700; color: #2563eb; background: #eff6ff; padding: 2px 8px; border-radius: 12px; }
         .bell-wrap { position: relative; cursor: pointer; }
@@ -105,6 +108,72 @@
             background: white; border-radius: 4px; cursor: pointer; color: #64748b;
         }
         .alert-actions button:hover { background: #f1f5f9; }
+
+        /* ── Pagination ─────────────────────────────────── */
+        .pagination { display: flex; gap: 4px; align-items: center; justify-content: center; margin-top: 16px; }
+        .pagination a, .pagination span {
+            padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 6px;
+            font-size: 13px; text-decoration: none; color: #2563eb; cursor: pointer;
+        }
+        .pagination a:hover { background: #eff6ff; }
+        .pagination .current { background: #2563eb; color: white; border-color: #2563eb; }
+        .pagination .dots { border: none; cursor: default; color: #94a3b8; }
+        .pagination .page-info { font-size: 12px; color: #94a3b8; margin-left: 12px; }
+
+        /* ── Score reason tooltip ───────────────────────── */
+        .tooltip-wrap { position: relative; display: inline-flex; align-items: center; cursor: help; }
+        .tooltip-wrap .tooltip-text {
+            visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 6px);
+            left: 50%; transform: translateX(-50%); background: #1e293b; color: white;
+            padding: 8px 12px; border-radius: 8px; font-size: 12px; white-space: nowrap;
+            z-index: 50; transition: opacity 0.15s, visibility 0.15s; max-width: 300px;
+            white-space: normal; text-align: left; line-height: 1.5;
+        }
+        .tooltip-wrap .tooltip-text::after {
+            content: ''; position: absolute; top: 100%; left: 50%;
+            transform: translateX(-50%); border: 5px solid transparent;
+            border-top-color: #1e293b;
+        }
+        .tooltip-wrap:hover .tooltip-text { visibility: visible; opacity: 1; }
+        .btn-score { color: #2563eb; background: none; border: none; font-size: 12px; cursor: pointer; padding: 0 4px; font-weight: 700; }
+        .btn-score:hover { text-decoration: underline; }
+
+        /* ── TED fields ─────────────────────────────────── */
+        .ted-fields { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; padding: 8px 10px; background: #fefce8; border-radius: 6px; font-size: 12px; }
+        .ted-field { display: flex; gap: 4px; }
+        .ted-label { color: #854d0e; font-weight: 600; }
+        .ted-value { color: #a16207; }
+
+        /* ── Lead actions row ─────────────────────────── */
+        .action-btn {
+            font-size: 11px; padding: 4px 8px; border-radius: 6px; cursor: pointer;
+            border: 1px solid #e2e8f0; background: white; color: #64748b; transition: all 0.15s;
+        }
+        .action-btn:hover { background: #f1f5f9; }
+        .action-btn.active-yes { background: #dcfce7; color: #166534; border-color: #86efac; }
+        .action-btn.active-no { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+
+        /* ── Note textarea in lead ─────────────────────── */
+        .note-area {
+            display: none; margin-top: 8px;
+        }
+        .note-area.show { display: block; }
+        .note-area textarea {
+            width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;
+            font-size: 12px; resize: vertical; min-height: 60px; font-family: inherit;
+        }
+        .note-area textarea:focus { outline: none; border-color: #2563eb; }
+
+        /* ── Filters bar (inline, collapsible) ────────── */
+        .filters-bar {
+            display: none; background: #f8fafc; border: 1px solid #e2e8f0;
+            border-radius: 8px; padding: 12px; margin-bottom: 16px; flex-wrap: wrap;
+            gap: 10px; align-items: flex-end;
+        }
+        .filters-bar.show { display: flex; }
+        .filter-group { display: flex; flex-direction: column; gap: 2px; }
+        .filter-group label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+        .filter-group input, .filter-group select { min-width: 110px; margin-bottom: 0; padding: 6px 10px; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -134,7 +203,7 @@
         <div class="stats">
             <div class="stat">
                 <h4>Total Leads</h4>
-                <div class="num">{{ lead_count }}</div>
+                <div class="num">{{ all_leads_count or lead_count }}</div>
             </div>
             <div class="stat">
                 <h4>New Today</h4>
@@ -164,7 +233,7 @@
 
         {% if not can_add_source %}
         <div class="limit-warning">
-            <strong>Source limit reached.</strong> You're using {{ sources|length }} of {{ source_limit }} sources. 
+            <strong>Source limit reached.</strong> You're using {{ sources|length }} of {{ source_limit }} sources.
             <a href="/pricing" style="color: #92400e; text-decoration: underline;">Upgrade your plan</a> to add more.
         </div>
         {% endif %}
@@ -209,23 +278,34 @@
 
                 <div style="margin-top: 16px;">
                     <button onclick="scrapeAll()" class="btn btn-sm btn-success">Scrape All Now</button>
-                    <a href="/api/leads/export" class="btn btn-sm btn-outline" style="margin-top: 8px;">Export CSV</a>
+                    <a href="/api/leads/export" class="btn btn-sm btn-outline" style="margin-top: 8px;display:inline-block;">Export CSV</a>
                 </div>
 
                 {% if user.subscription_tier == 'free' %}
                 <div style="margin-top: 24px; padding: 16px; background: #eff6ff; border-radius: 8px;">
                     <p style="font-size: 13px; color: #1e40af; margin-bottom: 8px;"><strong>Need more sources?</strong></p>
-                    <a href="/pricing" class="btn btn-sm" style="width: 100%;">Upgrade to Pro</a>
+                    <a href="/pricing" class="btn btn-sm" style="width: 100%;display:block;text-align:center;">Upgrade to Pro</a>
                 </div>
                 {% endif %}
             </div>
 
             <div class="leads">
                 <div class="leads-header">
-                    <h3>Recent Leads <span id="leadCount" style="font-size: 13px; color: #94a3b8; font-weight: 400;"></span></h3>
-                    <div class="toolbar">
-                        <input type="text" id="searchLeads" placeholder="Søg leads..." style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; width: 180px;">
-                        <select id="filterStatus" style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px;">
+                    <h3>Leads <span id="leadCount" style="font-size: 13px; color: #94a3b8; font-weight: 400;">
+                        {% if lead_count > 0 and pagination and pagination.total != pagination.per_page %}
+                            ({{ pagination.total }} total — page {{ pagination.page }}/{{ pagination.total_pages }})
+                        {% elif lead_count > 0 %}
+                            ({{ lead_count }})
+                        {% endif %}
+                    </span></h3>
+                </div>
+
+                <!-- ── Search & Filters Bar ───────────────────── -->
+                <div class="toolbar">
+                    <form action="/dashboard" method="get" id="searchForm" style="display:contents;">
+                        <input type="text" name="search" placeholder="Søg titel/buyer..." value="{{ filters.search }}"
+                               style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; width: 200px; margin-bottom: 0;">
+                        <select id="filterStatus" style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; min-width: 110px;">
                             <option value="">Alle status</option>
                             <option value="new">New</option>
                             <option value="contacted">Contacted</option>
@@ -233,19 +313,76 @@
                             <option value="won">Won</option>
                             <option value="lost">Lost</option>
                         </select>
-                        <button onclick="sendReport()" class="btn btn-sm btn-outline">Send Report</button>
+                        <button type="button" onclick="toggleFilters()" class="btn btn-xs btn-ghost">⚙ Filters</button>
+                        <select name="sort" style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; min-width: 100px;">
+                            <option value="newest" {{ 'selected' if filters.sort == 'newest' }}>Newest</option>
+                            <option value="score" {{ 'selected' if filters.sort == 'score' }}>Score ↓</option>
+                            <option value="deadline" {{ 'selected' if filters.sort == 'deadline' }}>Deadline ↑</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm">Søg</button>
+                        {% if filters.search or filters.filter_source or filters.filter_score_min or filters.sort %}
+                        <a href="/dashboard" class="btn btn-xs btn-ghost">Ryd</a>
+                        {% endif %}
+                    </form>
+                </div>
+
+                <div class="filters-bar {% if filters.filter_source or filters.filter_score_min or filters.filter_deadline %}show{% endif %}" id="filtersBar">
+                    <div class="filter-group">
+                        <label>Kilde</label>
+                        <select name="filter_source" form="searchForm">
+                            <option value="">Alle kilder</option>
+                            {% set source_types = ['job','news','rss_preset','competitor','cvr','ted_eu'] %}
+                            {% for st in source_types %}
+                            <option value="{{ st }}" {{ 'selected' if filters.filter_source == st }}>{{ st }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Min Score</label>
+                        <input type="number" name="filter_score_min" form="searchForm" value="{{ filters.filter_score_min }}"
+                               placeholder="0" min="0" max="100" style="width:70px;">
+                    </div>
+                    <div class="filter-group">
+                        <label>Max Score</label>
+                        <input type="number" name="filter_score_max" form="searchForm" value="{{ filters.filter_score_max }}"
+                               placeholder="100" min="0" max="100" style="width:70px;">
+                    </div>
+                    <div class="filter-group">
+                        <label>Deadline</label>
+                        <select name="filter_deadline" form="searchForm">
+                            <option value="">Alle</option>
+                            <option value="urgent" {{ 'selected' if filters.filter_deadline == 'urgent' }}>⚡ Urgent (7d)</option>
+                            <option value="upcoming" {{ 'selected' if filters.filter_deadline == 'upcoming' }}>📅 Upcoming (30d)</option>
+                            <option value="has_deadline" {{ 'selected' if filters.filter_deadline == 'has_deadline' }}>Has deadline</option>
+                        </select>
+                    </div>
+                    <div class="filter-group" style="align-self:flex-end;">
+                        <button type="submit" form="searchForm" class="btn btn-xs">Anvend</button>
                     </div>
                 </div>
 
-                {% if leads %}
+                {% if lead_count > 0 %}
                 <div id="leadsContainer">
                 {% for lead in leads %}
+                {% set st = lead.source.source_type if lead.source else 'new' %}
+                {% set is_ted = (lead.data_source == 'ted') or (lead.deadline_date and lead.deadline_date != '') or (lead.cpv_values and lead.cpv_values != '') or (lead.notice_identifier and lead.notice_identifier != '') %}
                 <div class="lead" data-lead-id="{{ lead.id }}" data-status="{{ lead.status }}" data-title="{{ lead.title|lower }}" data-company="{{ lead.company|lower }}">
                     <h4>
-                        {{ lead.title }}
-                        {% set st = lead.source.source_type if lead.source else 'new' %}
+                        <span>{{ lead.title }}</span>
                         <span class="badge badge-{{ st }}">{{ st }}</span>
-                        {% if lead.score > 0 %}<span class="score">{{ lead.score }} pts</span>{% endif %}
+                        {% if lead.score > 0 and lead.score_reasons %}
+                        <span class="tooltip-wrap">
+                            <span class="score">{{ lead.score }} pts</span>
+                            <span class="tooltip-text">{{ lead.score_reasons }}</span>
+                        </span>
+                        {% elif lead.score > 0 %}
+                        <span class="score">{{ lead.score }} pts</span>
+                        {% endif %}
+                        {% if lead.is_relevant == true %}
+                        <span class="badge badge-relevant">✓ Relevant</span>
+                        {% elif lead.is_relevant == false %}
+                        <span class="badge badge-not-relevant">✗ Irrelevant</span>
+                        {% endif %}
                         {% if lead.crm_sync_status == 'synced' %}
                             <span class="badge badge-crm-synced" title="Synced to {{ lead.crm_provider }}">✓ {{ lead.crm_provider }}</span>
                         {% elif lead.crm_sync_status == 'failed' %}
@@ -253,7 +390,7 @@
                         {% elif lead.crm_sync_status == 'pending' %}
                             <span class="badge badge-crm-pending" title="Sync pending">⏳ CRM</span>
                         {% else %}
-                            <span class="badge badge-crm-none">no CRM</span>
+                            <!-- no CRM badge shown by default -->
                         {% endif %}
                     </h4>
                     <p>{{ lead.description[:250] }}</p>
@@ -264,12 +401,33 @@
                         {% if lead.phone %}<span>📞 {{ lead.phone }}</span>{% endif %}
                         {% if lead.contact_email %}<span>✉️ {{ lead.contact_email }}</span>{% endif %}
                         {% if lead.cvr_number %}<span>CVR {{ lead.cvr_number }}</span>{% endif %}
-                        {% if lead.follow_up_date %}<span class="follow-up-badge">📅 Follow-up: {{ lead.follow_up_date }}</span>{% endif %}
                     </div>
-                    <div class="note-display {% if lead.notes %}show{% endif %}" id="note-display-{{ lead.id }}">{{ lead.notes or '' }}</div>
+
+                    <!-- ── TED-specific fields ──────────────── -->
+                    {% if is_ted %}
+                    <div class="ted-fields">
+                        {% if lead.cpv_values %}
+                        <div class="ted-field"><span class="ted-label">CPV:</span> <span class="ted-value">{{ lead.cpv_values }}</span></div>
+                        {% endif %}
+                        {% if lead.deadline_date %}
+                        <div class="ted-field"><span class="ted-label">Deadline:</span> <span class="ted-value {% if not lead.is_stale and lead.deadline_date != '' %}badge-urgent{% endif %}">{{ lead.deadline_date }}</span></div>
+                        {% endif %}
+                        {% if lead.estimated_value %}
+                        <div class="ted-field"><span class="ted-label">Est. Value:</span> <span class="ted-value">€{{ lead.estimated_value }}</span></div>
+                        {% endif %}
+                        {% if lead.notice_subtype %}
+                        <div class="ted-field"><span class="ted-label">Type:</span> <span class="ted-value">{{ lead.notice_subtype }}</span></div>
+                        {% endif %}
+                        {% if lead.notice_identifier %}
+                        <div class="ted-field"><span class="ted-label">Notice:</span> <span class="ted-value">{{ lead.notice_identifier }}</span></div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- ── Standard action buttons ──────────── -->
                     <div class="actions">
-                        {% if lead.url and lead.url != '#' %}
-                        <a href="{{ lead.url }}" target="_blank" class="btn btn-sm btn-outline">View Source</a>
+                        {% if (lead.source_url and lead.source_url != '#') or (lead.url and lead.url != '') %}
+                        <a href="{{ lead.source_url or lead.url }}" target="_blank" class="btn btn-sm btn-outline">View Source</a>
                         {% endif %}
                         {% if lead.crm_sync_status != 'synced' %}
                         <button class="btn btn-sm btn-outline" onclick="syncToCrm({{ lead.id }})" data-sync-btn="{{ lead.id }}">Sync to CRM</button>
@@ -281,27 +439,84 @@
                             <option value="won" {{ 'selected' if lead.status == 'won' }}>Won</option>
                             <option value="lost" {{ 'selected' if lead.status == 'lost' }}>Lost</option>
                         </select>
-                        <div class="actions-right">
-                            <button class="btn-icon {% if lead.is_relevant %}relevant{% endif %} {% if lead.is_relevant == false %}not-relevant{% endif %}"
-                                    onclick="toggleRelevant({{ lead.id }})"
-                                    title="Mark relevant / not relevant"
-                                    id="relev-btn-{{ lead.id }}">
-                                {% if lead.is_relevant == true %}✓ Relevant
-                                {% elif lead.is_relevant == false %}✗ Skip
-                                {% else %}?
-                                {% endif %}
-                            </button>
-                            <button class="btn-icon" onclick="toggleNote({{ lead.id }})" title="Add note">📝</button>
-                            <button class="btn-icon" onclick="setFollowUp({{ lead.id }})" title="Set follow-up date">📅</button>
+                    </div>
+
+                    <!-- ── Lead action: relevant/not, note, follow-up ── -->
+                    <div class="lead-actions">
+                        <button class="action-btn {{ 'active-yes' if lead.is_relevant == true }}" onclick="markRelevant({{ lead.id }}, true, this)" data-rel-yes="{{ lead.id }}">👍 Relevant</button>
+                        <button class="action-btn {{ 'active-no' if lead.is_relevant == false }}" onclick="markRelevant({{ lead.id }}, false, this)" data-rel-no="{{ lead.id }}">👎 Not Relevant</button>
+                        <button class="action-btn" onclick="toggleNote({{ lead.id }})">📝 Note</button>
+                        <button class="action-btn" onclick="toggleFollowUp({{ lead.id }}, '{{ lead.follow_up_date or '' }}')">📅 Follow-up</button>
+                        <button class="action-btn" onclick="syncToCrm({{ lead.id }})">🔗 CRM Sync</button>
+                        {% if lead.notes %}<span style="font-size:11px;color:#94a3b8;margin-left:8px;" title="{{ lead.notes }}">📝 has note</span>{% endif %}
+                        {% if lead.follow_up_date %}<span style="font-size:11px;color:#94a3b8;" title="Follow-up: {{ lead.follow_up_date }}">📅 {{ lead.follow_up_date }}</span>{% endif %}
+                    </div>
+
+                    <!-- ── Inline note area ────────────────── -->
+                    <div class="note-area" id="noteArea-{{ lead.id }}">
+                        <textarea placeholder="Add a note..." id="noteText-{{ lead.id }}">{{ lead.notes or '' }}</textarea>
+                        <div style="margin-top: 4px; display: flex; gap: 4px;">
+                            <button class="btn btn-xs" onclick="saveNote({{ lead.id }})">Save</button>
+                            <button class="btn btn-xs btn-ghost" onclick="toggleNote({{ lead.id }})">Cancel</button>
+                        </div>
+                    </div>
+
+                    <!-- ── Inline follow-up area ───────────── -->
+                    <div class="note-area" id="fuArea-{{ lead.id }}">
+                        <div style="display: flex; gap: 4px; align-items: center;">
+                            <input type="date" id="fuDate-{{ lead.id }}" value="{{ lead.follow_up_date or '' }}" style="margin-bottom:0; width: auto;">
+                            <button class="btn btn-xs" onclick="saveFollowUp({{ lead.id }})">Save</button>
+                            <button class="btn btn-xs btn-ghost" onclick="toggleFollowUp({{ lead.id }}, '{{ lead.follow_up_date or '' }}')">Cancel</button>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
                 </div>
+
+                <!-- ── Pagination ────────────────────────────── -->
+                {% if pagination and pagination.total_pages > 1 %}
+                <div class="pagination">
+                    {% if pagination.has_prev %}
+                    <a href="?{{ {'page': pagination.page - 1, 'per_page': pagination.per_page, 'sort': filters.sort, 'search': filters.search, 'filter_source': filters.filter_source, 'filter_score_min': filters.filter_score_min, 'filter_score_max': filters.filter_score_max, 'filter_deadline': filters.filter_deadline} | to_urlencode }}">← Prev</a>
+                    {% endif %}
+                    {% for p in range(1, pagination.total_pages + 1) %}
+                        {% if p == pagination.page %}
+                        <span class="current">{{ p }}</span>
+                        {% elif p == 1 or p == pagination.total_pages or (p >= pagination.page - 2 and p <= pagination.page + 2) %}
+                        <a href="?{{ {'page': p, 'per_page': pagination.per_page, 'sort': filters.sort, 'search': filters.search, 'filter_source': filters.filter_source, 'filter_score_min': filters.filter_score_min, 'filter_score_max': filters.filter_score_max, 'filter_deadline': filters.filter_deadline} | to_urlencode }}">{{ p }}</a>
+                        {% elif p == pagination.page - 3 or p == pagination.page + 3 %}
+                        <span class="dots">…</span>
+                        {% endif %}
+                    {% endfor %}
+                    {% if pagination.has_next %}
+                    <a href="?{{ {'page': pagination.page + 1, 'per_page': pagination.per_page, 'sort': filters.sort, 'search': filters.search, 'filter_source': filters.filter_source, 'filter_score_min': filters.filter_score_min, 'filter_score_max': filters.filter_score_max, 'filter_deadline': filters.filter_deadline} | to_urlencode }}">Next →</a>
+                    {% endif %}
+                    <span class="page-info">{{ pagination.total }} leads</span>
+                </div>
+                {% endif %}
+
                 {% else %}
+                <!-- ── Empty State ───────────────────────────── -->
                 <div class="empty">
                     <p style="font-size: 18px; margin-bottom: 8px;">🔍 No leads yet</p>
-                    <p>Add a source and click "Scrape All Now" to find your first leads.</p>
+                    <p style="margin-bottom: 16px;">
+                        {% if sources|length == 0 %}
+                            You haven't added any sources yet. Get started by adding a data source or choosing a lead pack.
+                        {% else %}
+                            No leads found with the current filters.
+                            {% if filters.search or filters.filter_source or filters.filter_score_min or filters.filter_deadline %}
+                                <a href="/dashboard" style="color: #2563eb;">Clear all filters</a>
+                            {% else %}
+                                Try clicking "Scrape All Now" to find your first leads.
+                            {% endif %}
+                        {% endif %}
+                    </p>
+                    {% if sources|length == 0 %}
+                    <div style="display: flex; gap: 8px; justify-content: center;">
+                        <button onclick="document.getElementById('presetSelect').style.display='block';document.querySelector('select[name=source_type]').value='rss_preset';showPreset('rss_preset')" class="btn btn-sm">📻 Choose a Pack</button>
+                        {% endif %}
+                        <button onclick="scrapeAll()" class="btn btn-sm btn-success">Scrape All Now</button>
+                    </div>
                 </div>
                 {% endif %}
             </div>
@@ -331,48 +546,31 @@
         }
     }
 
-    async function sendReport() {
-        const btn = document.querySelector('button[onclick="sendReport()"]');
-        btn.textContent = 'Sending...';
-        try {
-            const resp = await fetch('/api/send-report', { method: 'POST' });
-            const data = await resp.json();
-            alert(data.status === 'sent' ? `Report sent with ${data.leads} leads!` : data.status);
-        } catch (e) {
-            alert('Error sending report.');
-        }
-        btn.textContent = 'Send Report';
-    }
-
     async function updateStatus(leadId, status) {
         await fetch(`/api/leads/${leadId}/status`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `status=${status}`
         });
+        // Update badge visual
+        const sel = event.target;
+        sel.className = `status status-${status}`;
     }
 
     async function syncToCrm(leadId) {
         const btn = document.querySelector(`button[data-sync-btn="${leadId}"]`);
-        if (!btn) return;
-        btn.textContent = 'Syncing...';
-        btn.disabled = true;
+        const backup = btn?.textContent || 'CRM Sync';
         try {
             const resp = await fetch(`/api/leads/${leadId}/sync-crm`, { method: 'POST' });
             const data = await resp.json();
             if (data.success) {
-                btn.textContent = 'Synced ✓';
-                btn.style.background = '#dcfce7';
-                btn.style.color = '#166534';
-                btn.style.borderColor = '#166534';
-            } else {
-                btn.textContent = 'Retry';
-                btn.disabled = false;
-                alert(`Sync failed: ${data.error || 'Unknown error'}`);
+                alert('✓ Lead synced to CRM!');
+                // Refresh to show new badge
+                location.reload();
+            } else if (backup.includes('Sync')) {
+                alert(`Sync queued or in progress`);
             }
         } catch (e) {
-            btn.textContent = 'Sync to CRM';
-            btn.disabled = false;
             alert('Network error. Please retry.');
         }
     }
@@ -381,36 +579,101 @@
         document.getElementById('presetSelect').style.display = val === 'rss_preset' ? 'block' : 'none';
     }
 
-    // ── Search & Filter ───────────────────────────────────────────────
-    const searchInput = document.getElementById('searchLeads');
+    // ── Client-side Filter (status only) ──────────────────────
     const statusFilter = document.getElementById('filterStatus');
     const leadCount = document.getElementById('leadCount');
 
     function filterLeads() {
-        const term = (searchInput?.value || '').toLowerCase();
+        const term = (document.getElementById('searchForm')?.querySelector('[name="search"]')?.value || '').toLowerCase();
         const status = statusFilter?.value || '';
         const leads = document.querySelectorAll('#leadsContainer .lead');
         let visible = 0;
-
         leads.forEach(l => {
             const title = l.dataset.title || '';
             const company = l.dataset.company || '';
             const leadStatus = l.dataset.status || '';
-            const matchesSearch = !term || title.includes(term) || company.includes(term);
+            // Server-side search already applied; this is just for quick client filter on status
             const matchesStatus = !status || leadStatus === status;
-            const show = matchesSearch && matchesStatus;
-            l.style.display = show ? '' : 'none';
-            if (show) visible++;
+            l.style.display = matchesStatus ? '' : 'none';
+            if (matchesStatus) visible++;
         });
+    }
+    statusFilter?.addEventListener('change', filterLeads);
+    filterLeads();
 
-        if (leadCount) leadCount.textContent = `(${visible} vises)`;
+    // ── Filters toggle ───────────────────────────────────────
+    function toggleFilters() {
+        document.getElementById('filtersBar').classList.toggle('show');
     }
 
-    searchInput?.addEventListener('input', filterLeads);
-    statusFilter?.addEventListener('change', filterLeads);
-    filterLeads(); // initial
+    // ── Lead actions ─────────────────────────────────────────
+    async function markRelevant(leadId, relevant, btn) {
+        try {
+            await fetch(`/api/leads/${leadId}/relevance`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `is_relevant=${relevant}`
+            });
+            // Update button states
+            const lead = btn.closest('.lead');
+            lead.querySelectorAll('.action-btn[data-rel-yes]').forEach(b => b.classList.toggle('active-yes', relevant === true));
+            lead.querySelectorAll('.action-btn[data-rel-no]').forEach(b => b.classList.toggle('active-no', relevant === false));
+            // Remove other relevance badges
+            const badges = lead.querySelectorAll('.badge-relevant, .badge-not-relevant');
+            badges.forEach(b => b.remove());
+            // Add badge to h4
+            const h4 = lead.querySelector('h4');
+            const badge = document.createElement('span');
+            badge.className = `badge ${relevant === true ? 'badge-relevant' : 'badge-not-relevant'}`;
+            badge.textContent = relevant === true ? '✓ Relevant' : '✗ Irrelevant';
+            h4.appendChild(badge);
+        } catch(e) {
+            alert('Error updating relevance');
+        }
+    }
 
-    // ── Alerts ────────────────────────────────────────────────────────
+    function toggleNote(leadId) {
+        const area = document.getElementById(`noteArea-${leadId}`);
+        area.classList.toggle('show');
+    }
+
+    async function saveNote(leadId) {
+        const text = document.getElementById(`noteText-${leadId}`).value;
+        try {
+            await fetch(`/api/leads/${leadId}/note`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `note=${encodeURIComponent(text)}`
+            });
+            alert('Note saved');
+            document.getElementById(`noteArea-${leadId}`).classList.remove('show');
+        } catch(e) {
+            alert('Error saving note');
+        }
+    }
+
+    function toggleFollowUp(leadId, current) {
+        const area = document.getElementById(`fuArea-${leadId}`);
+        area.classList.toggle('show');
+    }
+
+    async function saveFollowUp(leadId) {
+        const date = document.getElementById(`fuDate-${leadId}`).value;
+        try {
+            await fetch(`/api/leads/${leadId}/follow-up`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `follow_up_date=${encodeURIComponent(date)}`
+            });
+            alert('Follow-up date saved');
+            document.getElementById(`fuArea-${leadId}`).classList.remove('show');
+            location.reload();
+        } catch(e) {
+            alert('Error saving follow-up');
+        }
+    }
+
+    // ── Alerts ────────────────────────────────────────────────
     let alertOpen = false;
 
     function toggleAlerts() {
@@ -489,69 +752,7 @@
     setInterval(() => {
         if (!alertOpen) loadAlerts();
     }, 30000);
-    loadAlerts(); // initial load
-
-    // ── Lead Actions ──────────────────────────────────────────────────
-    async function toggleRelevant(leadId) {
-        const btn = document.getElementById(`relev-btn-${leadId}`);
-        if (!btn) return;
-        const isCurrently = btn.classList.contains('relevant');
-        const skip = btn.classList.contains('not-relevant');
-        const newVal = !skip ? 'false' : ''; // cycle: none -> relevant -> skip -> none
-        const payload = new FormData();
-        payload.append('is_relevant', isCurrently ? 'false' : 'true');
-
-        await fetch(`/api/leads/${leadId}/relevant`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `is_relevant=${isCurrently ? 'false' : 'true'}`,
-        });
-        btn.textContent = isCurrently ? '✗ Skip' : '✓ Relevant';
-        btn.className = 'btn-icon' + (isCurrently ? ' not-relevant' : ' relevant');
-    }
-
-    function toggleNote(leadId) {
-        const display = document.getElementById(`note-display-${leadId}`);
-        if (!display) return;
-        if (display.classList.contains('show')) {
-            // Already visible — replace with input to edit
-            const current = display.textContent.trim();
-            const input = prompt('Edit note:', current);
-            if (input !== null) {
-                saveNote(leadId, input);
-            }
-        } else {
-            // Show note area with input
-            let input;
-            input = prompt('Add note:', '');
-            if (input !== null) {
-                saveNote(leadId, input);
-            }
-        }
-    }
-
-    async function saveNote(leadId, text) {
-        const display = document.getElementById(`note-display-${leadId}`);
-        if (!display) return;
-        await fetch(`/api/leads/${leadId}/note`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `note=${encodeURIComponent(text)}`,
-        });
-        display.textContent = text;
-        display.classList.toggle('show', !!text);
-    }
-
-    async function setFollowUp(leadId) {
-        const dateStr = prompt('Follow-up date (YYYY-MM-DD):', '');
-        if (dateStr === null) return;
-        await fetch(`/api/leads/${leadId}/follow-up`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `follow_up_date=${encodeURIComponent(dateStr)}`,
-        });
-        location.reload();
-    }
+    loadAlerts();
     </script>
 </body>
 </html>
