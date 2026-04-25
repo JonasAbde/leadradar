@@ -15,6 +15,8 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
+from sqlalchemy import text
+
 from . import models
 from .auth import (
     get_current_user, get_current_user_optional,
@@ -51,6 +53,10 @@ def sanitize_source_name(name: str) -> str:
 
 # Templates
 templates = Jinja2Templates(directory="templates")
+templates.env.globals["now"] = datetime.utcnow
+
+# Static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Custom filter for pagination query-string encoding
 import urllib.parse as _urllib
@@ -971,7 +977,7 @@ def health():
     # Check database connection
     try:
         db = next(models.get_db())
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         db_status = "connected"
     except Exception:
         db_status = "error"

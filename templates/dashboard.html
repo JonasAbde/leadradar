@@ -4,435 +4,346 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard — LeadRadar</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; background: #f8fafc; }
-        .nav { background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
-        .nav a { color: #2563eb; text-decoration: none; font-weight: 600; }
-        .nav .right { display: flex; align-items: center; gap: 16px; }
-        .nav .tier { font-size: 12px; padding: 4px 10px; border-radius: 12px; background: #dbeafe; color: #1e40af; font-weight: 600; text-transform: uppercase; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
-        .stat { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .stat h4 { font-size: 13px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-        .stat .num { font-size: 32px; font-weight: 700; color: #2563eb; }
-        .grid { display: grid; grid-template-columns: 300px 1fr; gap: 24px; }
-        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
-        .sidebar { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; height: fit-content; }
-        .sidebar h3 { font-size: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
-        .source-item { padding: 12px; border-radius: 8px; background: #f8fafc; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .source-item .name { font-weight: 600; font-size: 14px; }
-        .source-item .type { font-size: 12px; color: #64748b; }
-        .source-item .delete { color: #ef4444; cursor: pointer; font-size: 12px; opacity: 0; transition: opacity 0.2s; }
-        .source-item:hover .delete { opacity: 1; }
-        .btn { display: inline-block; padding: 10px 16px; border-radius: 8px; background: #2563eb; color: white; text-decoration: none; font-size: 14px; border: none; cursor: pointer; font-weight: 500; }
-        .btn:hover { background: #1d4ed8; }
-        .btn-sm { padding: 6px 12px; font-size: 13px; }
-        .btn-xs { padding: 3px 8px; font-size: 11px; }
-        .btn-outline { background: white; color: #2563eb; border: 1px solid #2563eb; }
-        .btn-outline:hover { background: #eff6ff; }
-        .btn-danger { background: #ef4444; }
-        .btn-danger:hover { background: #dc2626; }
-        .btn-success { background: #22c55e; }
-        .btn-success:hover { background: #16a34a; }
-        .btn-ghost { background: transparent; color: #64748b; border: 1px solid #e2e8f0; }
-        .btn-ghost:hover { background: #f1f5f9; }
-        .leads { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; }
-        .leads-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .leads h3 { font-size: 16px; }
-        .lead { padding: 16px; border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
-        .lead:hover { background: #f8fafc; }
-        .lead:last-child { border-bottom: none; }
-        .lead h4 { font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .lead p { font-size: 13px; color: #64748b; margin: 4px 0; }
-        .lead .meta { font-size: 12px; color: #94a3b8; margin-top: 6px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-        .lead .actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-        .lead .lead-actions { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
-
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
-        .badge-new { background: #dcfce7; color: #166534; }
-        .badge-job { background: #fef3c7; color: #92400e; }
-        .badge-news { background: #dbeafe; color: #1e40af; }
-        .badge-competitor { background: #f3e8ff; color: #6b21a8; }
-        .badge-cvr { background: #ecfdf5; color: #065f46; }
-        .badge-crm-synced { background: #dcfce7; color: #166534; }
-        .badge-crm-failed { background: #fee2e2; color: #991b1b; }
-        .badge-crm-pending { background: #fef3c7; color: #92400e; }
-        .badge-crm-none { background: #f1f5f9; color: #64748b; }
-        .badge-ted { background: #fef3c7; color: #92400e; }
-        .badge-urgent { background: #fee2e2; color: #991b1b; }
-        .badge-relevant { background: #dcfce7; color: #166534; }
-        .badge-not-relevant { background: #f1f5f9; color: #64748b; }
-        .status { font-size: 11px; padding: 2px 8px; border-radius: 12px; cursor: pointer; border: none; }
-        .status-new { background: #fef3c7; color: #92400e; }
-        .status-contacted { background: #dbeafe; color: #1e40af; }
-        .status-qualified { background: #dcfce7; color: #166534; }
-        .status-won { background: #ecfdf5; color: #065f46; }
-        .status-lost { background: #f1f5f9; color: #64748b; }
-
-        form { margin-top: 16px; }
-        input, select { width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 8px; font-size: 14px; }
-        input:focus, select:focus { outline: none; border-color: #2563eb; }
-        .empty { text-align: center; padding: 48px; color: #94a3b8; }
-        .toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
-        .toolbar input, .toolbar select { margin-bottom: 0; width: auto; min-width: 140px; }
-        .limit-warning { background: #fef3c7; color: #92400e; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
-        .score { font-size: 11px; font-weight: 700; color: #2563eb; background: #eff6ff; padding: 2px 8px; border-radius: 12px; }
-        .bell-wrap { position: relative; cursor: pointer; }
-        .bell { font-size: 20px; }
-        .bell-badge {
-            position: absolute; top: -4px; right: -6px;
-            background: #ef4444; color: white; font-size: 10px;
-            padding: 1px 5px; border-radius: 10px; font-weight: 700;
-            display: none;
-        }
-        .bell-dropdown {
-            position: absolute; right: 0; top: 36px; width: 340px;
-            background: white; border: 1px solid #e2e8f0; border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 100;
-            display: none; max-height: 420px; overflow-y: auto;
-        }
-        .bell-dropdown.show { display: block; }
-        .alert-item {
-            padding: 12px 16px; border-bottom: 1px solid #f1f5f9;
-            cursor: pointer; transition: background 0.15s;
-        }
-        .alert-item:hover { background: #f8fafc; }
-        .alert-item.unread { border-left: 3px solid #2563eb; }
-        .alert-item.read { opacity: 0.7; }
-        .alert-item .alert-msg { font-size: 13px; color: #1e293b; margin-bottom: 4px; }
-        .alert-item .alert-meta { font-size: 11px; color: #94a3b8; }
-        .alert-item .alert-actions { margin-top: 6px; display: flex; gap: 6px; }
-        .alert-actions button {
-            font-size: 11px; padding: 3px 8px; border: 1px solid #e2e8f0;
-            background: white; border-radius: 4px; cursor: pointer; color: #64748b;
-        }
-        .alert-actions button:hover { background: #f1f5f9; }
-
-        /* ── Pagination ─────────────────────────────────── */
-        .pagination { display: flex; gap: 4px; align-items: center; justify-content: center; margin-top: 16px; }
-        .pagination a, .pagination span {
-            padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 6px;
-            font-size: 13px; text-decoration: none; color: #2563eb; cursor: pointer;
-        }
-        .pagination a:hover { background: #eff6ff; }
-        .pagination .current { background: #2563eb; color: white; border-color: #2563eb; }
-        .pagination .dots { border: none; cursor: default; color: #94a3b8; }
-        .pagination .page-info { font-size: 12px; color: #94a3b8; margin-left: 12px; }
-
-        /* ── Score reason tooltip ───────────────────────── */
-        .tooltip-wrap { position: relative; display: inline-flex; align-items: center; cursor: help; }
-        .tooltip-wrap .tooltip-text {
-            visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 6px);
-            left: 50%; transform: translateX(-50%); background: #1e293b; color: white;
-            padding: 8px 12px; border-radius: 8px; font-size: 12px; white-space: nowrap;
-            z-index: 50; transition: opacity 0.15s, visibility 0.15s; max-width: 300px;
-            white-space: normal; text-align: left; line-height: 1.5;
-        }
-        .tooltip-wrap .tooltip-text::after {
-            content: ''; position: absolute; top: 100%; left: 50%;
-            transform: translateX(-50%); border: 5px solid transparent;
-            border-top-color: #1e293b;
-        }
-        .tooltip-wrap:hover .tooltip-text { visibility: visible; opacity: 1; }
-        .btn-score { color: #2563eb; background: none; border: none; font-size: 12px; cursor: pointer; padding: 0 4px; font-weight: 700; }
-        .btn-score:hover { text-decoration: underline; }
-
-        /* ── TED fields ─────────────────────────────────── */
-        .ted-fields { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; padding: 8px 10px; background: #fefce8; border-radius: 6px; font-size: 12px; }
-        .ted-field { display: flex; gap: 4px; }
-        .ted-label { color: #854d0e; font-weight: 600; }
-        .ted-value { color: #a16207; }
-
-        /* ── Lead actions row ─────────────────────────── */
-        .action-btn {
-            font-size: 11px; padding: 4px 8px; border-radius: 6px; cursor: pointer;
-            border: 1px solid #e2e8f0; background: white; color: #64748b; transition: all 0.15s;
-        }
-        .action-btn:hover { background: #f1f5f9; }
-        .action-btn.active-yes { background: #dcfce7; color: #166534; border-color: #86efac; }
-        .action-btn.active-no { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
-
-        /* ── Note textarea in lead ─────────────────────── */
-        .note-area {
-            display: none; margin-top: 8px;
-        }
-        .note-area.show { display: block; }
-        .note-area textarea {
-            width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;
-            font-size: 12px; resize: vertical; min-height: 60px; font-family: inherit;
-        }
-        .note-area textarea:focus { outline: none; border-color: #2563eb; }
-
-        /* ── Filters bar (inline, collapsible) ────────── */
-        .filters-bar {
-            display: none; background: #f8fafc; border: 1px solid #e2e8f0;
-            border-radius: 8px; padding: 12px; margin-bottom: 16px; flex-wrap: wrap;
-            gap: 10px; align-items: flex-end;
-        }
-        .filters-bar.show { display: flex; }
-        .filter-group { display: flex; flex-direction: column; gap: 2px; }
-        .filter-group label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
-        .filter-group input, .filter-group select { min-width: 110px; margin-bottom: 0; padding: 6px 10px; font-size: 13px; }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <nav class="nav">
-        <a href="/">📡 LeadRadar</a>
-        <div class="right">
-            <div class="bell-wrap" onclick="toggleAlerts()">
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <button class="hamburger" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
+            <a href="/" class="logo">📡 Lead<span>Radar</span></a>
+        </div>
+        <div class="nav-right">
+            <div class="bell-wrap" onclick="event.stopPropagation(); toggleAlertDropdown()">
                 <span class="bell">🔔</span>
                 <span class="bell-badge" id="bellBadge">0</span>
                 <div class="bell-dropdown" id="bellDropdown">
-                    <div style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
-                        <strong style="font-size: 14px;">Notifikationer</strong>
-                        <button onclick="event.stopPropagation(); markAllRead()" style="font-size: 11px; background: none; border: none; color: #2563eb; cursor: pointer;">Markér alle læst</button>
+                    <div style="padding:12px 16px;border-bottom:1px solid #1e2028;display:flex;justify-content:space-between;align-items:center;">
+                        <strong style="font-size:14px;color:#e5e7eb;">Notifikationer</strong>
+                        <button onclick="event.stopPropagation(); markAllRead()" class="btn-link">Markér alle læst</button>
                     </div>
                     <div id="alertList">
-                        <div style="padding: 24px; text-align: center; color: #94a3b8; font-size: 13px;">Ingen notifikationer</div>
+                        <div style="padding:24px;text-align:center;color:#6b7280;font-size:13px;">Ingen notifikationer</div>
                     </div>
                 </div>
             </div>
-            <span class="tier">{{ user.subscription_tier }}</span>
-            <span>{{ user.email }}</span>
-            <a href="/api/logout">Logout</a>
+            {% set tier_class = 'tier-' ~ user.subscription_tier %}
+            <span class="tier-pill {{ tier_class }}">{{ user.subscription_tier }}</span>
+            <span class="user-email" style="font-size:13px;color:#9ca3af;">{{ user.email }}</span>
+            <a href="/api/logout" class="btn btn-xs btn-ghost">Logout</a>
         </div>
     </nav>
 
-    <div class="container">
-        <div class="stats">
-            <div class="stat">
-                <h4>Total Leads</h4>
-                <div class="num">{{ all_leads_count or lead_count }}</div>
-            </div>
-            <div class="stat">
-                <h4>New Today</h4>
-                <div class="num">{{ new_today }}</div>
-            </div>
-            <div class="stat">
-                <h4>Sources</h4>
-                <div class="num">{{ sources|length }} / {{ source_limit }}</div>
-            </div>
-            <div class="stat">
-                <h4>Plan</h4>
-                <div class="num" style="font-size: 18px; margin-top: 8px;">{{ user.subscription_tier.title() }}</div>
-            </div>
-        </div>
+    <!-- Main App Layout -->
+    <div class="app-layout">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-        {% if sources|length == 0 %}
-        <div class="limit-warning" style="background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;">
-            <strong style="font-size: 16px;">🚀 Kom i gang</strong>
-            <p style="margin-top: 8px;">Du har ingen kilder endnu. Følg disse trin:</p>
-            <ol style="margin: 8px 0 0 20px; font-size: 13px;">
-                <li>Vælg en kilde nedenfor (f.eks. <strong>RSS Presets</strong> for nyheder)</li>
-                <li>Klik <strong>Scrape All Now</strong> for at finde leads</li>
-                <li>Se dine leads her og synkroniser dem til CRM</li>
-            </ol>
-        </div>
-        {% endif %}
+        <!-- ═══════════════ SIDEBAR ═══════════════ -->
+        <aside class="sidebar" id="sidebar">
+            <!-- Sources heading with count badge -->
+            <div class="sidebar-heading">
+                <span>Sources</span>
+                <span class="count-badge">{{ sources|length }}/{{ source_limit }}</span>
+            </div>
 
-        {% if not can_add_source %}
-        <div class="limit-warning">
-            <strong>Source limit reached.</strong> You're using {{ sources|length }} of {{ source_limit }} sources.
-            <a href="/pricing" style="color: #92400e; text-decoration: underline;">Upgrade your plan</a> to add more.
-        </div>
-        {% endif %}
-
-        <div class="grid">
-            <div class="sidebar">
-                <h3>Sources <span style="font-size: 12px; color: #94a3b8; font-weight: 400;">{{ sources|length }}/{{ source_limit }}</span></h3>
+            <!-- Source items list -->
+            <div id="sourcesList">
                 {% for s in sources %}
-                <div class="source-item">
+                <div class="source-item" data-source-id="{{ s.id }}">
                     <div>
-                        <div class="name">{{ s.name }}</div>
-                        <div class="type">{{ s.source_type }} • {{ 'Active' if s.active else 'Paused' }}</div>
+                        <div class="s-name">{{ s.name }}</div>
+                        <span class="s-type {{ s.source_type }}">{{ s.source_type }}</span>
                     </div>
-                    <span class="delete" onclick="deleteSource({{ s.id }})" title="Delete">Delete</span>
+                    <button class="s-delete" onclick="deleteSource({{ s.id }})" title="Delete source">✕</button>
                 </div>
                 {% endfor %}
-
-                {% if can_add_source %}
-                <h3 style="margin-top: 24px;">Add Source</h3>
-                <form action="/api/sources" method="post">
-                    <input type="text" name="name" placeholder="Source name (e.g. Jobindex IT)" required>
-                    <select name="source_type" required onchange="showPreset(this.value)">
-                        <option value="job">Job Postings</option>
-                        <option value="news">News / RSS (custom URL)</option>
-                        <option value="rss_preset">📻 RSS Presets (ready feeds)</option>
-                        <option value="competitor">Competitor Website</option>
-                        <option value="cvr">CVR (DK Companies)</option>
-                        <option value="ted_eu">🌐 EU Tenders (TED)</option>
-                    </select>
-                    <div id="presetSelect" style="display:none; margin-bottom: 8px;">
-                        <select name="preset">
-                            <option value="version2_tech">Version2.dk — Tech</option>
-                            <option value="ingenioren_tech">Ingeniøren — Engineering</option>
-                            <option value="berlingske_business">Berlingske Business</option>
-                        </select>
-                    </div>
-                    <input type="text" name="url" placeholder="URL (for competitor/news)">
-                    <input type="text" name="keywords" placeholder="Keywords: rengøring, it, konsulent">
-                    <button type="submit" class="btn btn-sm">Add Source</button>
-                </form>
-                {% endif %}
-
-                <div style="margin-top: 16px;">
-                    <button onclick="scrapeAll()" class="btn btn-sm btn-success">Scrape All Now</button>
-                    <a href="/api/leads/export" class="btn btn-sm btn-outline" style="margin-top: 8px;display:inline-block;">Export CSV</a>
-                </div>
-
-                {% if user.subscription_tier == 'free' %}
-                <div style="margin-top: 24px; padding: 16px; background: #eff6ff; border-radius: 8px;">
-                    <p style="font-size: 13px; color: #1e40af; margin-bottom: 8px;"><strong>Need more sources?</strong></p>
-                    <a href="/pricing" class="btn btn-sm" style="width: 100%;display:block;text-align:center;">Upgrade to Pro</a>
-                </div>
-                {% endif %}
             </div>
 
-            <div class="leads">
-                <div class="leads-header">
-                    <h3>Leads <span id="leadCount" style="font-size: 13px; color: #94a3b8; font-weight: 400;">
-                        {% if lead_count > 0 and pagination and pagination.total != pagination.per_page %}
-                            ({{ pagination.total }} total — page {{ pagination.page }}/{{ pagination.total_pages }})
-                        {% elif lead_count > 0 %}
-                            ({{ lead_count }})
-                        {% endif %}
-                    </span></h3>
+            <!-- Add Source Form -->
+            {% if can_add_source %}
+            <form class="sidebar-form" action="/api/sources" method="post">
+                <div class="sidebar-heading" style="margin-top:8px;">
+                    <span>Add Source</span>
                 </div>
+                <input type="text" name="name" placeholder="Source name (e.g. Jobindex IT)" required>
+                <select name="source_type" required onchange="showPreset(this.value)">
+                    <option value="job">Job Postings</option>
+                    <option value="news">News / RSS (custom URL)</option>
+                    <option value="rss_preset">📻 RSS Presets (ready feeds)</option>
+                    <option value="competitor">Competitor Website</option>
+                    <option value="cvr">CVR (DK Companies)</option>
+                    <option value="ted_eu">🌐 EU Tenders (TED)</option>
+                </select>
+                <div id="presetSelect" style="display:none;">
+                    <select name="preset">
+                        <option value="version2_tech">Version2.dk — Tech</option>
+                        <option value="ingenioren_tech">Ingeniøren — Engineering</option>
+                        <option value="berlingske_business">Berlingske Business</option>
+                    </select>
+                </div>
+                <input type="text" name="url" placeholder="URL (for competitor/news)">
+                <input type="text" name="keywords" placeholder="Keywords: rengøring, it, konsulent">
+                <button type="submit" class="btn btn-sm btn-primary btn-full">Add Source</button>
+            </form>
+            {% endif %}
 
-                <!-- ── Search & Filters Bar ───────────────────── -->
+            <!-- Actions -->
+            <div style="display:flex;gap:8px;">
+                <button onclick="scrapeAll()" class="btn btn-sm btn-scrape btn-full">⚡ Scrape All Now</button>
+            </div>
+            <a href="/api/leads/export" class="btn btn-xs btn-outline btn-full">Export CSV</a>
+
+            <!-- Upgrade Card -->
+            {% if user.subscription_tier == 'free' %}
+            <div class="upgrade-card">
+                <p><strong>Tired of {{ source_limit }} sources?</strong><br>Upgrade to unlock more.</p>
+                <a href="/pricing" class="btn btn-sm btn-primary btn-full">Upgrade to Pro</a>
+            </div>
+            {% endif %}
+        </aside>
+
+        <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+        <main class="main-content">
+            {# ── Kom i Gang Guide ── #}
+            {% if sources|length == 0 %}
+            <div class="guide-card">
+                <h3>🚀 Kom i gang</h3>
+                <p style="font-size:13px;color:#c4b5fd;margin-bottom:12px;">Du har ingen kilder endnu. Følg disse trin:</p>
+                <ol>
+                    <li>Tilføj en kilde til venstre — f.eks. <strong>RSS Presets</strong> eller <strong>EU Tenders</strong></li>
+                    <li>Klik <strong>Scrape All Now</strong> for at finde leads</li>
+                    <li>Bedøm leads, tilføj noter, og synkroniser til CRM</li>
+                </ol>
+            </div>
+            {% endif %}
+
+            {# ── Source Limit Warning ── #}
+            {% if not can_add_source %}
+            <div class="limit-warning">
+                <strong>Source limit reached.</strong> Du bruger {{ sources|length }} af {{ source_limit }} kilder.
+                <a href="/pricing">Upgrade your plan</a> for at tilføje flere.
+            </div>
+            {% endif %}
+
+            {# ── Stats Row ── #}
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-label">Total Leads</div>
+                    <div class="stat-value">{{ all_leads_count or lead_count }}</div>
+                    <div class="stat-sub">across all pages</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">New Today</div>
+                    <div class="stat-value">{{ new_today }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Sources</div>
+                    <div class="stat-value">{{ sources|length }}</div>
+                    <div class="stat-sub">of {{ source_limit }} available</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Plan</div>
+                    <div class="stat-value muted">{{ user.subscription_tier.title() }}</div>
+                </div>
+            </div>
+
+            {# ── Toolbar ── #}
+            <form action="/dashboard" method="get" id="searchForm">
                 <div class="toolbar">
-                    <form action="/dashboard" method="get" id="searchForm" style="display:contents;">
-                        <input type="text" name="search" placeholder="Søg titel/buyer..." value="{{ filters.search }}"
-                               style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; width: 200px; margin-bottom: 0;">
-                        <select id="filterStatus" style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; min-width: 110px;">
-                            <option value="">Alle status</option>
-                            <option value="new">New</option>
-                            <option value="contacted">Contacted</option>
-                            <option value="qualified">Qualified</option>
-                            <option value="won">Won</option>
-                            <option value="lost">Lost</option>
-                        </select>
-                        <button type="button" onclick="toggleFilters()" class="btn btn-xs btn-ghost">⚙ Filters</button>
-                        <select name="sort" style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; min-width: 100px;">
-                            <option value="newest" {{ 'selected' if filters.sort == 'newest' }}>Newest</option>
-                            <option value="score" {{ 'selected' if filters.sort == 'score' }}>Score ↓</option>
-                            <option value="deadline" {{ 'selected' if filters.sort == 'deadline' }}>Deadline ↑</option>
-                        </select>
-                        <button type="submit" class="btn btn-sm">Søg</button>
-                        {% if filters.search or filters.filter_source or filters.filter_score_min or filters.sort %}
-                        <a href="/dashboard" class="btn btn-xs btn-ghost">Ryd</a>
-                        {% endif %}
-                    </form>
+                    <input type="text" name="search" class="search-input" placeholder="Søg titel, buyer..." value="{{ filters.search }}">
+                    <select id="filterStatus">
+                        <option value="">Alle status</option>
+                        <option value="new">New</option>
+                        <option value="contacted">Contacted</option>
+                        <option value="qualified">Qualified</option>
+                        <option value="won">Won</option>
+                        <option value="lost">Lost</option>
+                    </select>
+                    <button type="button" onclick="toggleFilters()" class="btn btn-xs btn-ghost">⚙ Filters</button>
+                    <select name="sort">
+                        <option value="newest" {{ 'selected' if filters.sort == 'newest' }}>Newest</option>
+                        <option value="score" {{ 'selected' if filters.sort == 'score' }}>Score ↓</option>
+                        <option value="deadline" {{ 'selected' if filters.sort == 'deadline' }}>Deadline ↑</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary">Search</button>
+                    {% if filters.search or filters.filter_source or filters.filter_score_min or filters.filter_deadline or filters.sort %}
+                    <a href="/dashboard" class="btn btn-xs btn-ghost">Clear</a>
+                    {% endif %}
                 </div>
+            </form>
 
-                <div class="filters-bar {% if filters.filter_source or filters.filter_score_min or filters.filter_deadline %}show{% endif %}" id="filtersBar">
-                    <div class="filter-group">
-                        <label>Kilde</label>
-                        <select name="filter_source" form="searchForm">
-                            <option value="">Alle kilder</option>
-                            {% set source_types = ['job','news','rss_preset','competitor','cvr','ted_eu'] %}
-                            {% for st in source_types %}
-                            <option value="{{ st }}" {{ 'selected' if filters.filter_source == st }}>{{ st }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Min Score</label>
-                        <input type="number" name="filter_score_min" form="searchForm" value="{{ filters.filter_score_min }}"
-                               placeholder="0" min="0" max="100" style="width:70px;">
-                    </div>
-                    <div class="filter-group">
-                        <label>Max Score</label>
-                        <input type="number" name="filter_score_max" form="searchForm" value="{{ filters.filter_score_max }}"
-                               placeholder="100" min="0" max="100" style="width:70px;">
-                    </div>
-                    <div class="filter-group">
-                        <label>Deadline</label>
-                        <select name="filter_deadline" form="searchForm">
-                            <option value="">Alle</option>
-                            <option value="urgent" {{ 'selected' if filters.filter_deadline == 'urgent' }}>⚡ Urgent (7d)</option>
-                            <option value="upcoming" {{ 'selected' if filters.filter_deadline == 'upcoming' }}>📅 Upcoming (30d)</option>
-                            <option value="has_deadline" {{ 'selected' if filters.filter_deadline == 'has_deadline' }}>Has deadline</option>
-                        </select>
-                    </div>
-                    <div class="filter-group" style="align-self:flex-end;">
-                        <button type="submit" form="searchForm" class="btn btn-xs">Anvend</button>
-                    </div>
+            {# ── Collapsible Filters Bar ── #}
+            <div class="filters-bar {% if filters.filter_source or filters.filter_score_min or filters.filter_deadline %}show{% endif %}" id="filtersBar">
+                <div class="filter-group">
+                    <label>Kilde</label>
+                    <select name="filter_source" form="searchForm">
+                        <option value="">Alle</option>
+                        <option value="job" {{ 'selected' if filters.filter_source == 'job' }}>Job</option>
+                        <option value="news" {{ 'selected' if filters.filter_source == 'news' }}>News</option>
+                        <option value="rss_preset" {{ 'selected' if filters.filter_source == 'rss_preset' }}>RSS Preset</option>
+                        <option value="competitor" {{ 'selected' if filters.filter_source == 'competitor' }}>Competitor</option>
+                        <option value="cvr" {{ 'selected' if filters.filter_source == 'cvr' }}>CVR</option>
+                        <option value="ted_eu" {{ 'selected' if filters.filter_source == 'ted_eu' }}>EU Tenders</option>
+                    </select>
                 </div>
+                <div class="filter-group">
+                    <label>Min Score</label>
+                    <input type="number" name="filter_score_min" form="searchForm" value="{{ filters.filter_score_min }}" placeholder="0" min="0" max="100">
+                </div>
+                <div class="filter-group">
+                    <label>Max Score</label>
+                    <input type="number" name="filter_score_max" form="searchForm" value="{{ filters.filter_score_max }}" placeholder="100" min="0" max="100">
+                </div>
+                <div class="filter-group">
+                    <label>Deadline</label>
+                    <select name="filter_deadline" form="searchForm">
+                        <option value="">Alle</option>
+                        <option value="urgent" {{ 'selected' if filters.filter_deadline == 'urgent' }}>⚡ Urgent (7d)</option>
+                        <option value="upcoming" {{ 'selected' if filters.filter_deadline == 'upcoming' }}>📅 Upcoming (30d)</option>
+                        <option value="has_deadline" {{ 'selected' if filters.filter_deadline == 'has_deadline' }}>Has deadline</option>
+                    </select>
+                </div>
+                <div class="filter-group" style="align-self:flex-end;">
+                    <button type="submit" form="searchForm" class="btn btn-xs btn-primary">Apply</button>
+                </div>
+            </div>
 
-                {% if lead_count > 0 %}
-                <div id="leadsContainer">
+            {# ── Lead List ── #}
+            {% if lead_count > 0 %}
+            <div class="lead-list" id="leadsContainer">
                 {% for lead in leads %}
                 {% set st = lead.source.source_type if lead.source else 'new' %}
-                {% set is_ted = (lead.data_source == 'ted') or (lead.deadline_date and lead.deadline_date != '') or (lead.cpv_values and lead.cpv_values != '') or (lead.notice_identifier and lead.notice_identifier != '') %}
-                <div class="lead" data-lead-id="{{ lead.id }}" data-status="{{ lead.status }}" data-title="{{ lead.title|lower }}" data-company="{{ lead.company|lower }}">
-                    <h4>
-                        <span>{{ lead.title }}</span>
-                        <span class="badge badge-{{ st }}">{{ st }}</span>
-                        {% if lead.score > 0 and lead.score_reasons %}
-                        <span class="tooltip-wrap">
-                            <span class="score">{{ lead.score }} pts</span>
+                {% set is_ted = (lead.data_source == 'ted') or lead.cpv_values or lead.deadline_date or lead.notice_identifier %}
+                <div class="lead-card {% if lead.is_stale %}stale{% endif %}" data-lead-id="{{ lead.id }}" data-status="{{ lead.status }}" data-title="{{ lead.title|lower }}" data-company="{{ lead.company|lower }}">
+                    <!-- Header -->
+                    <div class="lead-header">
+                        {% if lead.score > 0 %}
+                        {% if lead.score >= 75 %}{% set score_class = 'score-perfect' %}
+                        {% elif lead.score >= 50 %}{% set score_class = 'score-high' %}
+                        {% elif lead.score >= 25 %}{% set score_class = 'score-mid' %}
+                        {% else %}{% set score_class = 'score-low' %}{% endif %}
+                        <div class="tooltip-wrap">
+                            <span class="score-circle {{ score_class }}">{{ lead.score }}</span>
+                            {% if lead.score_reasons %}
                             <span class="tooltip-text">{{ lead.score_reasons }}</span>
-                        </span>
-                        {% elif lead.score > 0 %}
-                        <span class="score">{{ lead.score }} pts</span>
+                            {% endif %}
+                        </div>
                         {% endif %}
-                        {% if lead.is_relevant == true %}
-                        <span class="badge badge-relevant">✓ Relevant</span>
-                        {% elif lead.is_relevant == false %}
-                        <span class="badge badge-not-relevant">✗ Irrelevant</span>
-                        {% endif %}
-                        {% if lead.crm_sync_status == 'synced' %}
+
+                        <a class="lead-title" href="{{ lead.source_url or lead.url or '#' }}" target="_blank" rel="noopener">
+                            {{ lead.title }}
+                        </a>
+
+                        <div class="lead-badges">
+                            <span class="badge badge-source badge-{{ st }}">{{ st }}</span>
+                            <span class="badge badge-{{ lead.status }}">{{ lead.status }}</span>
+                            {% if lead.crm_sync_status == 'synced' %}
                             <span class="badge badge-crm-synced" title="Synced to {{ lead.crm_provider }}">✓ {{ lead.crm_provider }}</span>
-                        {% elif lead.crm_sync_status == 'failed' %}
-                            <span class="badge badge-crm-failed" title="Sync failed: {{ lead.crm_last_error or 'Unknown' }}">✗ CRM</span>
-                        {% elif lead.crm_sync_status == 'pending' %}
+                            {% elif lead.crm_sync_status == 'failed' %}
+                            <span class="badge badge-crm-failed" title="Sync failed">✗ CRM</span>
+                            {% elif lead.crm_sync_status == 'pending' %}
                             <span class="badge badge-crm-pending" title="Sync pending">⏳ CRM</span>
-                        {% else %}
-                            <!-- no CRM badge shown by default -->
-                        {% endif %}
-                    </h4>
-                    <p>{{ lead.description[:250] }}</p>
-                    <div class="meta">
-                        <span>{{ lead.company }}</span>
-                        <span>{{ lead.location or 'Unknown' }}</span>
-                        <span>{{ lead.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
-                        {% if lead.phone %}<span>📞 {{ lead.phone }}</span>{% endif %}
-                        {% if lead.contact_email %}<span>✉️ {{ lead.contact_email }}</span>{% endif %}
-                        {% if lead.cvr_number %}<span>CVR {{ lead.cvr_number }}</span>{% endif %}
+                            {% endif %}
+                            {% if lead.is_relevant == true %}
+                            <span class="badge badge-relevant">✓ Relevant</span>
+                            {% elif lead.is_relevant == false %}
+                            <span class="badge badge-not-relevant">✗ Irrelevant</span>
+                            {% endif %}
+                        </div>
                     </div>
 
-                    <!-- ── TED-specific fields ──────────────── -->
+                    <!-- Description -->
+                    {% if lead.description %}
+                    <div class="lead-desc">{{ lead.description[:250] }}{% if lead.description|length > 250 %}...{% endif %}</div>
+                    {% endif %}
+
+                    <!-- Meta Row -->
+                    <div class="lead-meta">
+                        {% if lead.company %}
+                        <div class="lead-meta-item">
+                            <span class="label">Company:</span>
+                            <span class="val">{{ lead.company }}</span>
+                        </div>
+                        {% endif %}
+                        {% if lead.location %}
+                        <div class="lead-meta-item">
+                            <span class="label">Location:</span>
+                            <span class="val">{{ lead.location }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="lead-meta-item">
+                            <span class="label">Added:</span>
+                            <span class="val">{{ lead.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </div>
+                        {% if lead.phone %}
+                        <div class="lead-meta-item">
+                            <span class="label">📞</span>
+                            <span class="val"><a href="tel:{{ lead.phone }}">{{ lead.phone }}</a></span>
+                        </div>
+                        {% endif %}
+                        {% if lead.contact_email %}
+                        <div class="lead-meta-item">
+                            <span class="label">✉️</span>
+                            <span class="val"><a href="mailto:{{ lead.contact_email }}">{{ lead.contact_email }}</a></span>
+                        </div>
+                        {% endif %}
+                        {% if lead.cvr_number %}
+                        <div class="lead-meta-item">
+                            <span class="label">CVR:</span>
+                            <span class="val">{{ lead.cvr_number }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- TED-specific fields -->
                     {% if is_ted %}
-                    <div class="ted-fields">
+                    <div class="ted-block">
                         {% if lead.cpv_values %}
-                        <div class="ted-field"><span class="ted-label">CPV:</span> <span class="ted-value">{{ lead.cpv_values }}</span></div>
+                        <div class="ted-item">
+                            <span class="ted-label">CPV:</span>
+                            <span class="ted-value">{{ lead.cpv_values }}</span>
+                        </div>
                         {% endif %}
                         {% if lead.deadline_date %}
-                        <div class="ted-field"><span class="ted-label">Deadline:</span> <span class="ted-value {% if not lead.is_stale and lead.deadline_date != '' %}badge-urgent{% endif %}">{{ lead.deadline_date }}</span></div>
+                        <div class="ted-item">
+                            <span class="ted-label">Deadline:</span>
+                            <span class="ted-value">{{ lead.deadline_date }}</span>
+                        </div>
                         {% endif %}
                         {% if lead.estimated_value %}
-                        <div class="ted-field"><span class="ted-label">Est. Value:</span> <span class="ted-value">€{{ lead.estimated_value }}</span></div>
+                        <div class="ted-item">
+                            <span class="ted-label">Est. Value:</span>
+                            <span class="ted-value">€{{ lead.estimated_value }}</span>
+                        </div>
                         {% endif %}
                         {% if lead.notice_subtype %}
-                        <div class="ted-field"><span class="ted-label">Type:</span> <span class="ted-value">{{ lead.notice_subtype }}</span></div>
+                        <div class="ted-item">
+                            <span class="ted-label">Type:</span>
+                            <span class="ted-value">{{ lead.notice_subtype }}</span>
+                        </div>
                         {% endif %}
                         {% if lead.notice_identifier %}
-                        <div class="ted-field"><span class="ted-label">Notice:</span> <span class="ted-value">{{ lead.notice_identifier }}</span></div>
+                        <div class="ted-item">
+                            <span class="ted-label">Notice:</span>
+                            <span class="ted-value">{{ lead.notice_identifier }}</span>
+                        </div>
                         {% endif %}
                     </div>
                     {% endif %}
 
-                    <!-- ── Standard action buttons ──────────── -->
-                    <div class="actions">
-                        {% if (lead.source_url and lead.source_url != '#') or (lead.url and lead.url != '') %}
-                        <a href="{{ lead.source_url or lead.url }}" target="_blank" class="btn btn-sm btn-outline">View Source</a>
-                        {% endif %}
+                    <!-- Action Buttons -->
+                    <div class="lead-actions">
+                        <button class="action-btn {% if lead.is_relevant == true %}active-yes{% endif %}" onclick="markRelevant({{ lead.id }}, true, this)">👍 Relevant</button>
+                        <button class="action-btn {% if lead.is_relevant == false %}active-no{% endif %}" onclick="markRelevant({{ lead.id }}, false, this)">👎 Not Relevant</button>
+                        <button class="action-btn" onclick="toggleNote({{ lead.id }})">📝 Note</button>
+                        <button class="action-btn" onclick="toggleFollowUp({{ lead.id }}, '{{ lead.follow_up_date or '' }}')">📅 Follow-up</button>
                         {% if lead.crm_sync_status != 'synced' %}
-                        <button class="btn btn-sm btn-outline" onclick="syncToCrm({{ lead.id }})" data-sync-btn="{{ lead.id }}">Sync to CRM</button>
+                        <button class="action-btn" onclick="syncToCrm({{ lead.id }})">🔗 CRM Sync</button>
                         {% endif %}
-                        <select class="status status-{{ lead.status }}" onchange="updateStatus({{ lead.id }}, this.value)">
+                        <select class="status-select" onchange="updateStatus({{ lead.id }}, this.value)">
                             <option value="new" {{ 'selected' if lead.status == 'new' }}>New</option>
                             <option value="contacted" {{ 'selected' if lead.status == 'contacted' }}>Contacted</option>
                             <option value="qualified" {{ 'selected' if lead.status == 'qualified' }}>Qualified</option>
@@ -441,172 +352,129 @@
                         </select>
                     </div>
 
-                    <!-- ── Lead action: relevant/not, note, follow-up ── -->
-                    <div class="lead-actions">
-                        <button class="action-btn {{ 'active-yes' if lead.is_relevant == true }}" onclick="markRelevant({{ lead.id }}, true, this)" data-rel-yes="{{ lead.id }}">👍 Relevant</button>
-                        <button class="action-btn {{ 'active-no' if lead.is_relevant == false }}" onclick="markRelevant({{ lead.id }}, false, this)" data-rel-no="{{ lead.id }}">👎 Not Relevant</button>
-                        <button class="action-btn" onclick="toggleNote({{ lead.id }})">📝 Note</button>
-                        <button class="action-btn" onclick="toggleFollowUp({{ lead.id }}, '{{ lead.follow_up_date or '' }}')">📅 Follow-up</button>
-                        <button class="action-btn" onclick="syncToCrm({{ lead.id }})">🔗 CRM Sync</button>
-                        {% if lead.notes %}<span style="font-size:11px;color:#94a3b8;margin-left:8px;" title="{{ lead.notes }}">📝 has note</span>{% endif %}
-                        {% if lead.follow_up_date %}<span style="font-size:11px;color:#94a3b8;" title="Follow-up: {{ lead.follow_up_date }}">📅 {{ lead.follow_up_date }}</span>{% endif %}
-                    </div>
+                    <!-- Indicators -->
+                    {% if lead.notes %}
+                    <span style="font-size:11px;color:#4b5563;margin-left:8px;" title="{{ lead.notes }}">📝 has note</span>
+                    {% endif %}
+                    {% if lead.follow_up_date %}
+                    <span style="font-size:11px;color:#4b5563;margin-left:8px;">📅 {{ lead.follow_up_date }}</span>
+                    {% endif %}
 
-                    <!-- ── Inline note area ────────────────── -->
-                    <div class="note-area" id="noteArea-{{ lead.id }}">
+                    <!-- View Source (if no source_url shown above) -->
+                    {% if (lead.source_url and lead.source_url != '#') %}
+                    <div style="margin-top:8px;">
+                        <a href="{{ lead.source_url }}" target="_blank" class="btn btn-xs btn-outline">View Source →</a>
+                    </div>
+                    {% endif %}
+
+                    <!-- ── Inline Note Panel ── -->
+                    <div class="inline-panel" id="noteArea-{{ lead.id }}">
                         <textarea placeholder="Add a note..." id="noteText-{{ lead.id }}">{{ lead.notes or '' }}</textarea>
-                        <div style="margin-top: 4px; display: flex; gap: 4px;">
-                            <button class="btn btn-xs" onclick="saveNote({{ lead.id }})">Save</button>
+                        <div class="panel-actions">
+                            <button class="btn btn-xs btn-primary" onclick="saveNote({{ lead.id }})">Save Note</button>
                             <button class="btn btn-xs btn-ghost" onclick="toggleNote({{ lead.id }})">Cancel</button>
                         </div>
                     </div>
 
-                    <!-- ── Inline follow-up area ───────────── -->
-                    <div class="note-area" id="fuArea-{{ lead.id }}">
-                        <div style="display: flex; gap: 4px; align-items: center;">
-                            <input type="date" id="fuDate-{{ lead.id }}" value="{{ lead.follow_up_date or '' }}" style="margin-bottom:0; width: auto;">
-                            <button class="btn btn-xs" onclick="saveFollowUp({{ lead.id }})">Save</button>
+                    <!-- ── Inline Follow-up Panel ── -->
+                    <div class="inline-panel" id="fuArea-{{ lead.id }}">
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <input type="date" id="fuDate-{{ lead.id }}" value="{{ lead.follow_up_date or '' }}">
+                            <button class="btn btn-xs btn-primary" onclick="saveFollowUp({{ lead.id }})">Save</button>
                             <button class="btn btn-xs btn-ghost" onclick="toggleFollowUp({{ lead.id }}, '{{ lead.follow_up_date or '' }}')">Cancel</button>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
-                </div>
+            </div>
 
-                <!-- ── Pagination ────────────────────────────── -->
-                {% if pagination and pagination.total_pages > 1 %}
-                <div class="pagination">
-                    {% if pagination.has_prev %}
-                    <a href="?{{ {'page': pagination.page - 1, 'per_page': pagination.per_page, 'sort': filters.sort, 'search': filters.search, 'filter_source': filters.filter_source, 'filter_score_min': filters.filter_score_min, 'filter_score_max': filters.filter_score_max, 'filter_deadline': filters.filter_deadline} | to_urlencode }}">← Prev</a>
-                    {% endif %}
-                    {% for p in range(1, pagination.total_pages + 1) %}
-                        {% if p == pagination.page %}
-                        <span class="current">{{ p }}</span>
-                        {% elif p == 1 or p == pagination.total_pages or (p >= pagination.page - 2 and p <= pagination.page + 2) %}
-                        <a href="?{{ {'page': p, 'per_page': pagination.per_page, 'sort': filters.sort, 'search': filters.search, 'filter_source': filters.filter_source, 'filter_score_min': filters.filter_score_min, 'filter_score_max': filters.filter_score_max, 'filter_deadline': filters.filter_deadline} | to_urlencode }}">{{ p }}</a>
-                        {% elif p == pagination.page - 3 or p == pagination.page + 3 %}
-                        <span class="dots">…</span>
-                        {% endif %}
-                    {% endfor %}
-                    {% if pagination.has_next %}
-                    <a href="?{{ {'page': pagination.page + 1, 'per_page': pagination.per_page, 'sort': filters.sort, 'search': filters.search, 'filter_source': filters.filter_source, 'filter_score_min': filters.filter_score_min, 'filter_score_max': filters.filter_score_max, 'filter_deadline': filters.filter_deadline} | to_urlencode }}">Next →</a>
-                    {% endif %}
-                    <span class="page-info">{{ pagination.total }} leads</span>
-                </div>
+            {# ── Pagination ── #}
+            {% if pagination and pagination.total_pages > 1 %}
+            <div class="pagination">
+                {% if pagination.has_prev %}
+                <a href="?{{ {'page': pagination.page - 1, 'per_page': pagination.per_page, 'sort': filters.sort, 'search': filters.search, 'filter_source': filters.filter_source, 'filter_score_min': filters.filter_score_min, 'filter_score_max': filters.filter_score_max, 'filter_deadline': filters.filter_deadline} | to_urlencode }}">← Prev</a>
                 {% endif %}
+                {% for p in range(1, pagination.total_pages + 1) %}
+                    {% if p == pagination.page %}
+                    <span class="current page-num">{{ p }}</span>
+                    {% elif p == 1 or p == pagination.total_pages or (p >= pagination.page - 2 and p <= pagination.page + 2) %}
+                    <a href="?{{ {'page': p, 'per_page': pagination.per_page, 'sort': filters.sort, 'search': filters.search, 'filter_source': filters.filter_source, 'filter_score_min': filters.filter_score_min, 'filter_score_max': filters.filter_score_max, 'filter_deadline': filters.filter_deadline} | to_urlencode }}">{{ p }}</a>
+                    {% elif p == pagination.page - 3 or p == pagination.page + 3 %}
+                    <span class="dots page-num">…</span>
+                    {% endif %}
+                {% endfor %}
+                {% if pagination.has_next %}
+                <a href="?{{ {'page': pagination.page + 1, 'per_page': pagination.per_page, 'sort': filters.sort, 'search': filters.search, 'filter_source': filters.filter_source, 'filter_score_min': filters.filter_score_min, 'filter_score_max': filters.filter_score_max, 'filter_deadline': filters.filter_deadline} | to_urlencode }}">Next →</a>
+                {% endif %}
+                <span class="page-info">{{ pagination.total }} leads</span>
+            </div>
+            {% endif %}
 
+            {% else %}
+            {# ── Empty State ── #}
+            <div class="empty-state">
+                {% if sources|length == 0 %}
+                <div class="empty-icon">📡</div>
+                <h3>No sources yet</h3>
+                <p>Start by adding your first data source in the sidebar.<br>Choose from RSS presets, EU tenders, job boards, or competitor tracking.</p>
+                <div class="empty-actions">
+                    <button onclick="document.querySelector('select[name=source_type]').value='rss_preset';showPreset('rss_preset')" class="btn btn-primary">📻 Choose a Pack</button>
+                    <button onclick="scrapeAll()" class="btn btn-accent">⚡ Scrape All Now</button>
+                </div>
                 {% else %}
-                <!-- ── Empty State ───────────────────────────── -->
-                <div class="empty">
-                    <p style="font-size: 18px; margin-bottom: 8px;">🔍 No leads yet</p>
-                    <p style="margin-bottom: 16px;">
-                        {% if sources|length == 0 %}
-                            You haven't added any sources yet. Get started by adding a data source or choosing a lead pack.
-                        {% else %}
-                            No leads found with the current filters.
-                            {% if filters.search or filters.filter_source or filters.filter_score_min or filters.filter_deadline %}
-                                <a href="/dashboard" style="color: #2563eb;">Clear all filters</a>
-                            {% else %}
-                                Try clicking "Scrape All Now" to find your first leads.
-                            {% endif %}
-                        {% endif %}
-                    </p>
-                    {% if sources|length == 0 %}
-                    <div style="display: flex; gap: 8px; justify-content: center;">
-                        <button onclick="document.getElementById('presetSelect').style.display='block';document.querySelector('select[name=source_type]').value='rss_preset';showPreset('rss_preset')" class="btn btn-sm">📻 Choose a Pack</button>
-                        {% endif %}
-                        <button onclick="scrapeAll()" class="btn btn-sm btn-success">Scrape All Now</button>
-                    </div>
+                <div class="empty-icon">🔍</div>
+                <h3>No leads found</h3>
+                <p>
+                    {% if filters.search or filters.filter_source or filters.filter_score_min or filters.filter_deadline %}
+                        No leads match your current filters.
+                        <a href="/dashboard">Clear all filters</a> and try again.
+                    {% else %}
+                        Try clicking "Scrape All Now" to discover new leads.
+                    {% endif %}
+                </p>
+                <div class="empty-actions">
+                    <button onclick="scrapeAll()" class="btn btn-accent">⚡ Scrape All Now</button>
+                    {% if filters.search or filters.filter_source or filters.filter_score_min or filters.filter_deadline %}
+                    <a href="/dashboard" class="btn btn-ghost">Clear Filters</a>
+                    {% endif %}
                 </div>
                 {% endif %}
             </div>
-        </div>
+            {% endif %}
+        </main>
     </div>
 
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- JavaScript -->
     <script>
-    async function deleteSource(id) {
-        if (!confirm('Delete this source?')) return;
-        await fetch(`/api/sources/${id}`, { method: 'DELETE' });
-        location.reload();
+    // ── Toast System ──────────────────────────────
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        toast.style.pointerEvents = 'auto';
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('fade-out');
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
     }
 
-    async function scrapeAll() {
-        const btn = document.querySelector('button[onclick="scrapeAll()"]');
-        btn.textContent = 'Scraping...';
-        btn.disabled = true;
-        try {
-            const resp = await fetch('/api/scrape-all', { method: 'POST' });
-            const data = await resp.json();
-            alert(`Scraped ${data.sources_scraped} sources. ${data.new_leads} new leads found.`);
-            location.reload();
-        } catch (e) {
-            alert('Error scraping. Try again.');
-            btn.textContent = 'Scrape All Now';
-            btn.disabled = false;
-        }
+    // ── Mobile Sidebar Toggle ─────────────────────
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('show');
     }
 
-    async function updateStatus(leadId, status) {
-        await fetch(`/api/leads/${leadId}/status`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `status=${status}`
-        });
-        // Update badge visual
-        const sel = event.target;
-        sel.className = `status status-${status}`;
-    }
-
-    async function syncToCrm(leadId) {
-        const btn = document.querySelector(`button[data-sync-btn="${leadId}"]`);
-        const backup = btn?.textContent || 'CRM Sync';
-        try {
-            const resp = await fetch(`/api/leads/${leadId}/sync-crm`, { method: 'POST' });
-            const data = await resp.json();
-            if (data.success) {
-                alert('✓ Lead synced to CRM!');
-                // Refresh to show new badge
-                location.reload();
-            } else if (backup.includes('Sync')) {
-                alert(`Sync queued or in progress`);
-            }
-        } catch (e) {
-            alert('Network error. Please retry.');
-        }
-    }
-
-    function showPreset(val) {
-        document.getElementById('presetSelect').style.display = val === 'rss_preset' ? 'block' : 'none';
-    }
-
-    // ── Client-side Filter (status only) ──────────────────────
-    const statusFilter = document.getElementById('filterStatus');
-    const leadCount = document.getElementById('leadCount');
-
-    function filterLeads() {
-        const term = (document.getElementById('searchForm')?.querySelector('[name="search"]')?.value || '').toLowerCase();
-        const status = statusFilter?.value || '';
-        const leads = document.querySelectorAll('#leadsContainer .lead');
-        let visible = 0;
-        leads.forEach(l => {
-            const title = l.dataset.title || '';
-            const company = l.dataset.company || '';
-            const leadStatus = l.dataset.status || '';
-            // Server-side search already applied; this is just for quick client filter on status
-            const matchesStatus = !status || leadStatus === status;
-            l.style.display = matchesStatus ? '' : 'none';
-            if (matchesStatus) visible++;
-        });
-    }
-    statusFilter?.addEventListener('change', filterLeads);
-    filterLeads();
-
-    // ── Filters toggle ───────────────────────────────────────
+    // ── Filters Toggle ────────────────────────────
     function toggleFilters() {
         document.getElementById('filtersBar').classList.toggle('show');
     }
 
-    // ── Lead actions ─────────────────────────────────────────
+    // ── Mark Relevant / Not Relevant ──────────────
     async function markRelevant(leadId, relevant, btn) {
         try {
             await fetch(`/api/leads/${leadId}/relevance`, {
@@ -614,29 +482,32 @@
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `is_relevant=${relevant}`
             });
-            // Update button states
-            const lead = btn.closest('.lead');
+            const lead = btn.closest('.lead-card');
             lead.querySelectorAll('.action-btn[data-rel-yes]').forEach(b => b.classList.toggle('active-yes', relevant === true));
             lead.querySelectorAll('.action-btn[data-rel-no]').forEach(b => b.classList.toggle('active-no', relevant === false));
-            // Remove other relevance badges
-            const badges = lead.querySelectorAll('.badge-relevant, .badge-not-relevant');
-            badges.forEach(b => b.remove());
-            // Add badge to h4
-            const h4 = lead.querySelector('h4');
+            // Update badge
+            const h4 = lead.querySelector('.lead-badges');
+            lead.querySelectorAll('.badge-relevant, .badge-not-relevant').forEach(b => b.remove());
             const badge = document.createElement('span');
             badge.className = `badge ${relevant === true ? 'badge-relevant' : 'badge-not-relevant'}`;
             badge.textContent = relevant === true ? '✓ Relevant' : '✗ Irrelevant';
             h4.appendChild(badge);
+            showToast(relevant ? 'Marked as relevant' : 'Marked as not relevant', 'success');
         } catch(e) {
-            alert('Error updating relevance');
+            showToast('Error updating relevance', 'error');
         }
     }
 
+    // ── Toggle Note Panel ─────────────────────────
     function toggleNote(leadId) {
         const area = document.getElementById(`noteArea-${leadId}`);
         area.classList.toggle('show');
+        if (area.classList.contains('show')) {
+            area.querySelector('textarea').focus();
+        }
     }
 
+    // ── Save Note ─────────────────────────────────
     async function saveNote(leadId) {
         const text = document.getElementById(`noteText-${leadId}`).value;
         try {
@@ -645,18 +516,23 @@
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `note=${encodeURIComponent(text)}`
             });
-            alert('Note saved');
+            showToast('Note saved', 'success');
             document.getElementById(`noteArea-${leadId}`).classList.remove('show');
         } catch(e) {
-            alert('Error saving note');
+            showToast('Error saving note', 'error');
         }
     }
 
-    function toggleFollowUp(leadId, current) {
+    // ── Toggle Follow-up Panel ────────────────────
+    function toggleFollowUp(leadId, existingDate) {
         const area = document.getElementById(`fuArea-${leadId}`);
         area.classList.toggle('show');
+        if (area.classList.contains('show') && existingDate) {
+            document.getElementById(`fuDate-${leadId}`).value = existingDate;
+        }
     }
 
+    // ── Save Follow-up Date ───────────────────────
     async function saveFollowUp(leadId) {
         const date = document.getElementById(`fuDate-${leadId}`).value;
         try {
@@ -665,22 +541,97 @@
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `follow_up_date=${encodeURIComponent(date)}`
             });
-            alert('Follow-up date saved');
+            showToast('Follow-up date saved', 'success');
             document.getElementById(`fuArea-${leadId}`).classList.remove('show');
-            location.reload();
+            setTimeout(() => location.reload(), 600);
         } catch(e) {
-            alert('Error saving follow-up');
+            showToast('Error saving follow-up', 'error');
         }
     }
 
-    // ── Alerts ────────────────────────────────────────────────
+    // ── Sync to CRM ──────────────────────────────
+    async function syncToCrm(leadId) {
+        try {
+            const resp = await fetch(`/api/leads/${leadId}/sync-crm`, { method: 'POST' });
+            const data = await resp.json();
+            if (data.success) {
+                showToast('✓ Lead synced to CRM!', 'success');
+                setTimeout(() => location.reload(), 600);
+            } else {
+                showToast('Sync queued or in progress', 'info');
+            }
+        } catch(e) {
+            showToast('Network error. Please retry.', 'error');
+        }
+    }
+
+    // ── Update Status ─────────────────────────────
+    async function updateStatus(leadId, status) {
+        try {
+            await fetch(`/api/leads/${leadId}/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `status=${status}`
+            });
+            showToast(`Status updated to ${status}`, 'success');
+        } catch(e) {
+            showToast('Error updating status', 'error');
+        }
+    }
+
+    // ── Delete Source ─────────────────────────────
+    async function deleteSource(sourceId) {
+        if (!confirm('Delete this source? All associated data may be affected.')) return;
+        try {
+            await fetch(`/api/sources/${sourceId}`, { method: 'DELETE' });
+            showToast('Source deleted', 'success');
+            document.querySelector(`[data-source-id="${sourceId}"]`)?.remove();
+        } catch(e) {
+            showToast('Error deleting source', 'error');
+        }
+    }
+
+    // ── Scrape All ────────────────────────────────
+    async function scrapeAll() {
+        const btns = document.querySelectorAll('.btn-scrape, .btn-scrape');
+        btns.forEach(b => { b.textContent = '⏳ Scraping...'; b.disabled = true; });
+        try {
+            const resp = await fetch('/api/scrape-all', { method: 'POST' });
+            const data = await resp.json();
+            showToast(`Scraped ${data.sources_scraped} sources. ${data.new_leads} new leads found.`, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } catch(e) {
+            showToast('Error scraping. Try again.', 'error');
+            btns.forEach(b => { b.textContent = '⚡ Scrape All Now'; b.disabled = false; });
+        }
+    }
+
+    // ── Alert / Bell ──────────────────────────────
     let alertOpen = false;
 
-    function toggleAlerts() {
+    function toggleAlertDropdown() {
         alertOpen = !alertOpen;
         const dd = document.getElementById('bellDropdown');
         dd.classList.toggle('show', alertOpen);
         if (alertOpen) loadAlerts();
+    }
+
+    async function markAllRead() {
+        try {
+            await fetch('/api/alerts/mark-all-read', { method: 'POST' });
+        } catch(e) {}
+        loadAlerts();
+    }
+
+    async function deleteAlert(alertId) {
+        await fetch(`/api/alerts/${alertId}`, { method: 'DELETE' });
+        showToast('Alert dismissed', 'info');
+        loadAlerts();
+    }
+
+    async function markAlertRead(alertId) {
+        await fetch(`/api/alerts/${alertId}/read`, { method: 'POST' });
+        loadAlerts();
     }
 
     async function loadAlerts() {
@@ -688,7 +639,7 @@
             const resp = await fetch('/api/alerts?unread_only=true');
             const alerts = await resp.json();
             renderAlerts(alerts);
-        } catch (e) {
+        } catch(e) {
             console.error('Failed to load alerts', e);
         }
     }
@@ -700,7 +651,7 @@
         badge.style.display = alerts.length > 0 ? 'block' : 'none';
 
         if (!alerts.length) {
-            list.innerHTML = '<div style="padding: 24px; text-align: center; color: #94a3b8; font-size: 13px;">Ingen ulæste notifikationer</div>';
+            list.innerHTML = '<div style="padding:24px;text-align:center;color:#6b7280;font-size:13px;">Ingen ulæste notifikationer</div>';
             return;
         }
         list.innerHTML = alerts.map(a => `
@@ -708,8 +659,8 @@
                 <div class="alert-msg">${escapeHtml(a.message)}</div>
                 <div class="alert-meta">${a.event} • ${new Date(a.created_at).toLocaleString('da-DK')}</div>
                 <div class="alert-actions">
-                    <button onclick="markRead(${a.id})">Markér læst</button>
-                    <button onclick="dismissAlert(${a.id})">Fjern</button>
+                    <button onclick="event.stopPropagation(); markAlertRead(${a.id})">Markér læst</button>
+                    <button onclick="event.stopPropagation(); deleteAlert(${a.id})">Fjern</button>
                 </div>
             </div>
         `).join('');
@@ -721,25 +672,6 @@
         return div.innerHTML;
     }
 
-    async function markRead(id) {
-        await fetch(`/api/alerts/${id}/read`, { method: 'POST' });
-        loadAlerts();
-    }
-
-    async function dismissAlert(id) {
-        await fetch(`/api/alerts/${id}`, { method: 'DELETE' });
-        loadAlerts();
-    }
-
-    async function markAllRead() {
-        const items = document.querySelectorAll('.alert-item.unread');
-        for (const item of items) {
-            const id = item.querySelector('button')?.getAttribute('onclick')?.match(/markRead\((\d+)\)/)?.[1];
-            if (id) await fetch(`/api/alerts/${id}/read`, { method: 'POST' });
-        }
-        loadAlerts();
-    }
-
     // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.bell-wrap')) {
@@ -749,10 +681,30 @@
     });
 
     // Poll for new alerts every 30 seconds
-    setInterval(() => {
-        if (!alertOpen) loadAlerts();
-    }, 30000);
-    loadAlerts();
+    function pollAlerts() {
+        loadAlerts();
+        setTimeout(pollAlerts, 30000);
+    }
+    pollAlerts();
+
+    // ── Client-side Status Filter ─────────────────
+    const statusFilter = document.getElementById('filterStatus');
+    function filterLeads() {
+        const status = statusFilter?.value || '';
+        const leads = document.querySelectorAll('#leadsContainer .lead-card');
+        leads.forEach(l => {
+            const leadStatus = l.dataset.status || '';
+            const matchesStatus = !status || leadStatus === status;
+            l.style.display = matchesStatus ? '' : 'none';
+        });
+    }
+    statusFilter?.addEventListener('change', filterLeads);
+    filterLeads();
+
+    // ── RSS Preset Selector ───────────────────────
+    function showPreset(val) {
+        document.getElementById('presetSelect').style.display = val === 'rss_preset' ? 'block' : 'none';
+    }
     </script>
 </body>
 </html>

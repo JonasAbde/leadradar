@@ -1,138 +1,95 @@
 #!/usr/bin/env python3
-"""
-Merge orphan leadradar.db into data/leadradar.db.
+import sqlite3, os, shutil
 
-Migrates users, sources, and leads from the root-level leadradar.db
-to the canonical data/leadradar.db if they don't already exist.
-Safe and idempotent — can be run multiple times without side effects.
+ACTIVE = 'data/leadradar.db'
+LEGACY = 'data/leadradar_legacy.db'
+BACKUP = 'data/leadradar.db.pre_merge'
 
-Usage:
-    python scripts/merge_dbs.py
-"""
+# Check active db
+conn_a = sqlite3.connect(ACTIVE)
+tables_active = [r[0] for r in conn_a.execute(
+    "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+).fetchall()]
+print("Active tables:", tables_active)
 
-import sqlite3
-import os
-import sys
+conn_l = sqlite3.connect(LEGACY)
+tables_legacy = [r[0] for r in conn_l.execute(
+    "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+).fetchall()]
+print("Legacy tables:", tables_legacy)
 
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ORPHAN_DB = os.path.join(ROOT_DIR, "leadradar.db")
-ACTIVE_DB = os.path.join(ROOT_DIR, "data", "leadradar.db")
+# Print row counts for active
+for t in tables_active:
+    n = conn_a.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
+    print(f"  active.{t}: {n} rows")
 
+# Print row counts for legacy
+for t in tables_legacy:
+    n = conn_l.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
+    print(f"  legacy.{t}: {n} rows")
 
-def get_tables(conn):
-    """Return set of table names in a database."""
-    cur = conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
-    )
-    return {row[0] for row in cur.fetchall()}
+# Check schema differences
+common = set(tables_active) & set(tables_legacy) - {'sqlite_sequence'}
+print(f"\nCommon tables: {common}")
 
+for t in common:
+    cols_a = set(r[1] for r in conn_a.execute(f"PRAGMA table_info({t})").fetchall())
+    cols_l = set(r[1] for r in conn_l.execute(f"PRAGMA table_info({t})").fetchall())
+    extra_in_active = cols_a - cols_l
+    extra_in_legacy = cols_l - cols_a
+    if extra_in_active:
+        print(f"  {t}: Active has extra cols: {extra_in_active}")
+    if extra_in_legacy:
+        print(f"  {t}: Legacy has extra cols: {extra_in_legacy}")
 
-def get_columns(conn, table):
-    """Return list of column names for a table."""
-    cur = conn.execute(f"PRAGMA table_info({table})")
-    return [row[1] for row in cur.fetchall()]
+conn_a.close()
+conn_l.close()
 
+# Now merge only rows from tables where schemas are compatible
+print("\n=== MERGING ===")
 
-def merge_table(
-    orphan_conn, active_conn, table, key_col="id", cols=None
-):
-    """
-    Copy rows from orphan DB to active DB where primary key does not exist.
-    Uses INSERT OR IGNORE for idempotency.
-    """
-    if cols is None:
-        cols = get_columns(orphan_conn, table)
+# Backup
+shutil.copy2(ACTIVE, BACKUP)
+print(f"Backup: {BACKUP}")
 
-    active_tables = get_tables(active_conn)
-    if table not in active_tables:
-        print(f"  ⚠ Table '{table}' not found in active DB, skipping.")
-        return 0
+conn_a = sqlite3.connect(ACTIVE)
+conn_l = sqlite3.connect(LEGACY)
+conn_a.execute(f"ATTACH DATABASE '{LEGACY}' AS legacy")
 
-    orphan_cols = get_columns(orphan_conn, table)
-    for c in cols:
-        if c not in orphan_cols:
-            cols.remove(c)
-            print(f"  ⚠ Column '{c}' not in orphan DB '{table}', skipping.")
+total_added = 0
 
-    col_list = ", ".join(cols)
-    placeholders = ", ".join(["?" for _ in cols])
-
-    # Fetch all rows from orphan
-    orphan_rows = orphan_conn.execute(f"SELECT {col_list} FROM {table}").fetchall()
-
-    inserted = 0
-    for row in orphan_rows:
-        # Check if key already exists
-        key_val = row[cols.index(key_col)] if key_col in cols else None
-        if key_val is not None:
-            existing = active_conn.execute(
-                f"SELECT 1 FROM {table} WHERE {key_col} = ?", (key_val,)
-            ).fetchone()
-            if existing:
-                continue  # Already exists, skip
-
-        try:
-            active_conn.execute(
-                f"INSERT INTO {table} ({col_list}) VALUES ({placeholders})",
-                row,
-            )
-            inserted += 1
-        except sqlite3.IntegrityError as e:
-            print(f"  ⚠ Conflict inserting into {table} key={key_val}: {e}")
-            continue
-
-    return inserted
-
-
-def main():
-    if not os.path.exists(ORPHAN_DB):
-        print("No orphan DB found at leadradar.db — nothing to merge.")
-        return
-
-    if not os.path.exists(ACTIVE_DB):
-        print("No active DB found at data/leadradar.db — nothing to merge into.")
-        return
-
-    print(f"Orphan DB: {ORPHAN_DB}")
-    print(f"Active DB: {ACTIVE_DB}")
-    print()
-
-    orphan_conn = sqlite3.connect(ORPHAN_DB)
-    active_conn = sqlite3.connect(ACTIVE_DB)
-
-    total_moved = 0
-    tables_to_merge = [
-        {"table": "users", "key_col": "id"},
-        {"table": "sources", "key_col": "id"},
-        {"table": "leads", "key_col": "id"},
-    ]
-
-    orphan_tables = get_tables(orphan_conn)
-    active_tables = get_tables(active_conn)
-
-    for spec in tables_to_merge:
-        table = spec["table"]
-        key = spec["key_col"]
-        if table not in orphan_tables:
-            print(f"  Skipping '{table}' — not in orphan DB.")
-            continue
-        if table not in active_tables:
-            print(f"  Skipping '{table}' — not in active DB.")
-            continue
-
-        count = merge_table(orphan_conn, active_conn, table, key)
-        print(f"  ✓ Merged {count} rows into '{table}'.")
-        total_moved += count
-
-    orphan_conn.close()
-    active_conn.commit()
-    active_conn.close()
-
-    if total_moved == 0:
-        print("\nNo new data to merge. Databases are in sync.")
+for t in common:
+    cols_a = set(r[1] for r in conn_a.execute(f"PRAGMA table_info({t})").fetchall())
+    cols_l = set(r[1] for r in conn_l.execute(f"PRAGMA table_info({t})").fetchall())
+    
+    # Only merge if legacy columns are a subset of active columns
+    if not cols_l.issubset(cols_a):
+        print(f"  {t}: SKIPPED — schema incompatible (legacy has extra cols: {cols_l - cols_a})")
+        continue
+    
+    before = conn_a.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
+    col_str = ', '.join(cols_l)
+    
+    conn_a.execute(f"""
+        INSERT OR IGNORE INTO {t} ({col_str})
+        SELECT {col_str} FROM legacy.{t}
+    """)
+    conn_a.commit()
+    
+    after = conn_a.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
+    added = after - before
+    total_added += added
+    if added > 0:
+        print(f"  {t}: +{added} rows")
     else:
-        print(f"\n✓ Done. Merged {total_moved} total rows.")
+        print(f"  {t}: no new rows")
 
+conn_a.close()
+conn_l.close()
 
-if __name__ == "__main__":
-    main()
+print(f"\nMerge complete! Total rows added: {total_added}")
+print(f"Active DB size: {os.path.getsize(ACTIVE)} bytes")
+
+# Clean up legacy
+os.rename(LEGACY, LEGACY + '.merged')
+print(f"Legacy DB renamed to {LEGACY}.merged (safe to delete)")

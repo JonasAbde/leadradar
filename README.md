@@ -160,7 +160,6 @@ leadradar/
 │   ├── auth.py              # JWT auth, password utilities
 │   ├── scrapers.py          # Scraper factory/abstraction
 │   ├── ted_provider.py      # TED EU API client
-│   ├── ted_scraper.py       # TED scraper implementation
 │   ├── rss_presets.py       # Pre-configured RSS feeds
 │   ├── scoring.py           # Lead relevance scoring
 │   ├── lead_packs.py        # Industry pack definitions

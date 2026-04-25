@@ -4,134 +4,231 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LeadRadar Demo — Live Tenders</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.6; }
+        .demo-hero { padding: 80px 24px 48px; text-align: center; position: relative; }
+        .demo-hero::before {
+            content: '';
+            position: absolute;
+            top: -120px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 700px;
+            height: 400px;
+            background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .demo-hero h1 {
+            font-size: clamp(24px, 4vw, 38px);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        .demo-hero p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
 
-        .demo-banner { background: linear-gradient(135deg, #1e3a8a, #312e81); padding: 24px 20px; text-align: center; font-size: 15px; color: #bfdbfe; border-bottom: 1px solid #334155; }
-        .demo-banner strong { color: #f1f5f9; }
-        .demo-banner a { color: #fbbf24; font-weight: 600; }
+        .demo-banner {
+            background: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-radius: var(--radius-md);
+            padding: 16px 24px;
+            max-width: 600px;
+            margin: 0 auto 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            position: relative;
+        }
+        .demo-banner span { color: var(--warning); font-size: 14px; font-weight: 500; }
+        .demo-banner .btn { font-size: 13px; padding: 8px 16px; }
 
-        .nav { background: #1e293b; border-bottom: 1px solid #334155; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-brand { font-size: 20px; font-weight: 700; color: #f1f5f9; text-decoration: none; }
+        .demo-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 32px;
+            position: relative;
+        }
+        .demo-stat { text-align: center; }
+        .demo-stat .num {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .demo-stat .label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
 
-        .container { max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
+        .tender-list { max-width: 760px; margin: 48px auto 0; display: flex; flex-direction: column; gap: 12px; }
+        .tender-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            transition: border-color var(--transition), background var(--transition);
+        }
+        .tender-card:hover { border-color: var(--border-light); background: var(--bg-card-hover); }
+        .tender-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+        .tender-info { flex: 1; min-width: 200px; }
+        .tender-info h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; line-height: 1.4; }
+        .tender-info h3 a { color: var(--text-primary); text-decoration: none; }
+        .tender-info h3 a:hover { color: var(--accent-light); }
+        .tender-info .buyer { color: var(--accent-light); font-size: 13px; font-weight: 500; }
+        .tender-details {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-end;
+            min-width: 180px;
+        }
+        .tender-details .cpv-codes { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+        .tender-detail-item { font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+        .tender-detail-item span.label-text { color: var(--text-muted); font-size: 12px; }
 
-        .demo-header { text-align: center; margin-bottom: 48px; }
-        .demo-header h1 { font-size: 36px; margin-bottom: 12px; background: linear-gradient(90deg, #38bdf8, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .demo-header p { color: #94a3b8; font-size: 16px; max-width: 600px; margin: 0 auto; }
-        .demo-stats { display: flex; justify-content: center; gap: 32px; margin-top: 24px; }
-        .stat { text-align: center; }
-        .stat .num { font-size: 32px; font-weight: 800; color: #3b82f6; }
-        .stat .label { font-size: 13px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .bottom-cta {
+            text-align: center;
+            padding: 48px 24px;
+            margin-top: 48px;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            max-width: 760px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .bottom-cta h2 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+        .bottom-cta p { color: var(--text-secondary); margin-bottom: 24px; font-size: 15px; }
 
-        .pack-section { margin-bottom: 40px; }
-        .pack-title { font-size: 18px; font-weight: 700; color: #f1f5f9; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 8px; }
-        .pack-count { background: #1e3a8a; color: #93c5fd; padding: 2px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; }
-
-        .tender-grid { display: grid; gap: 12px; }
-        .tender-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px 24px; transition: border-color 0.2s, box-shadow 0.2s; display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
-        .tender-card:hover { border-color: #3b82f6; box-shadow: 0 2px 12px rgba(59, 130, 246, 0.1); }
-        .tender-main { flex: 1; min-width: 250px; }
-        .tender-card h3 { font-size: 15px; font-weight: 600; color: #f1f5f9; margin-bottom: 6px; }
-        .tender-card h3 a { color: #f1f5f9; text-decoration: none; }
-        .tender-card h3 a:hover { color: #38bdf8; }
-        .tender-buyer { color: #94a3b8; font-size: 13px; }
-        .tender-buyer span { color: #3b82f6; }
-        .tender-meta { display: flex; flex-direction: column; gap: 6px; min-width: 180px; align-items: flex-end; }
-        .meta-badge { font-size: 11px; padding: 3px 10px; border-radius: 6px; text-align: center; }
-        .meta-badge.proc { background: #1e3a8a; color: #93c5fd; }
-        .meta-badge.date { background: #0f172a; color: #94a3b8; border: 1px solid #334155; }
-        .meta-badge.pack { background: #1a2e1a; color: #86efac; }
-        .meta-badge.subtype { background: #2a1e2e; color: #d8b4fe; }
-
-        .demo-cta { text-align: center; padding: 48px 24px; background: #1e293b; border-top: 1px solid #334155; border-radius: 16px; margin-top: 48px; }
-        .demo-cta h2 { font-size: 24px; margin-bottom: 12px; color: #f1f5f9; }
-        .demo-cta p { color: #94a3b8; margin-bottom: 24px; font-size: 15px; }
-        .cta-btn { display: inline-block; background: linear-gradient(135deg, #3b82f6, #6366f1); color: white; padding: 14px 36px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 16px; transition: transform 0.2s, box-shadow 0.2s; }
-        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3); }
-
-        footer { text-align: center; padding: 24px; color: #475569; font-size: 13px; border-top: 1px solid #1e293b; margin-top: 40px; }
+        .no-tenders { text-align: center; padding: 60px 24px; color: var(--text-muted); }
+        .no-tenders .icon { font-size: 48px; margin-bottom: 16px; }
 
         @media (max-width: 768px) {
-            .demo-header h1 { font-size: 28px; }
-            .tender-card { flex-direction: column; }
-            .tender-meta { flex-direction: row; align-items: center; flex-wrap: wrap; }
-            .demo-stats { gap: 16px; }
+            .demo-hero { padding: 64px 16px 32px; }
+            .tender-card-top { flex-direction: column; }
+            .tender-details { flex-direction: row; flex-wrap: wrap; align-items: center; }
+            .demo-stats { gap: 20px; }
+            .demo-banner { flex-direction: column; text-align: center; }
         }
     </style>
 </head>
 <body>
-    <div class="demo-banner">
-        <strong>🔍 This is a demo</strong> — Sign up to track, save, and get alerts for tenders matching your business.
-        <a href="/register">Create free account →</a>
-    </div>
 
-    <nav class="nav">
-        <a href="/" class="nav-brand">LeadRadar</a>
-        <div style="display: flex; gap: 16px;">
-            <a href="/pricing" style="color: #e2e8f0; text-decoration: none; font-size: 14px;">Pricing</a>
-            <a href="/login" style="color: #e2e8f0; text-decoration: none; font-size: 14px;">Sign In</a>
-            <a href="/register" style="color: #3b82f6; text-decoration: none; font-weight: 600; font-size: 14px;">Get Started Free</a>
+    <!-- Nav -->
+    <nav class="top-nav">
+        <div class="nav-inner">
+            <a href="/" class="nav-brand">📡 LeadRadar</a>
+            <div class="nav-links">
+                <a href="/pricing" class="nav-link">Pricing</a>
+                <a href="/login" class="nav-link">Sign In</a>
+                <a href="/register" class="nav-link" style="color: var(--accent-light); font-weight: 600;">Get Started Free</a>
+            </div>
         </div>
     </nav>
 
-    <div class="container">
-        <div class="demo-header">
-            <h1>Live Tenders from TED EU Database</h1>
-            <p>These are real procurement notices fetched from the Tenders Electronic Daily (TED) API. Results are filtered by industry and relevance to Danish businesses.</p>
-            <div class="demo-stats">
-                <div class="stat">
-                    <div class="num">{{ tenders|length }}</div>
-                    <div class="label">Tenders shown</div>
-                </div>
-                <div class="stat">
-                    <div class="num">3</div>
-                    <div class="label">Packs queried</div>
-                </div>
-                <div class="stat">
-                    <div class="num">0 DKK</div>
-                    <div class="label">Demo cost</div>
-                </div>
+    <!-- Hero -->
+    <section class="demo-hero">
+        <h1 class="gradient-text">Live Demo — Real Danish Public Tenders</h1>
+        <p>These are real procurement notices fetched from the Tenders Electronic Daily (TED) API, filtered for relevance to Danish businesses.</p>
+
+        <div class="demo-stats">
+            <div class="demo-stat">
+                <div class="num">{{ tender_count }}</div>
+                <div class="label">Tenders shown</div>
+            </div>
+            <div class="demo-stat">
+                <div class="num">{{ pack_count }}</div>
+                <div class="label">Categories</div>
             </div>
         </div>
+    </section>
 
-        {% set current_pack = "" %}
-        {% for t in tenders %}
-            {% if t.pack_name != current_pack %}
-                {% if not loop.first %}</div>{% endif %}
-                <div class="pack-section">
-                <div class="pack-title">
-                    📦 {{ t.pack_name }}
-                    <span class="pack-count">Live from TED</span>
-                </div>
-                <div class="tender-grid">
-                {% set current_pack = t.pack_name %}
-            {% endif %}
-
-            <div class="tender-card">
-                <div class="tender-main">
-                    <h3><a href="{{ t.url }}" target="_blank" rel="noopener">{{ t.title }}</a></h3>
-                    <div class="tender-buyer"><span>{{ t.buyer }}</span> · {{ t.buyer_country }}</div>
-                </div>
-                <div class="tender-meta">
-                    {% if t.procedure %}<span class="meta-badge proc">{{ t.procedure }}</span>{% endif %}
-                    {% if t.pub_date %}<span class="meta-badge date">{{ t.pub_date[:10] }}</span>{% endif %}
-                </div>
-            </div>
-        {% endfor %}
-        </div>
-        </div>
-
-        <div class="demo-cta">
-            <h2>Ready to Track Tenders That Match Your Business?</h2>
-            <p>Create a free account and choose a lead pack. We'll deliver new tenders to your dashboard every day.</p>
-            <a href="/register" class="cta-btn">Start Free — No Credit Card</a>
-        </div>
+    <!-- Demo banner -->
+    <div class="demo-banner">
+        <span>⚡ This is a demo — sign up to track and save leads</span>
+        <a href="/register" class="btn btn-primary">Create free account →</a>
     </div>
 
-    <footer>
-        Data sourced from <a href="https://ted.europa.eu" style="color: #3b82f6;">TED EU Tenders</a> · LeadRadar 2026
+    <!-- Tenders -->
+    <div class="tender-list">
+        {% if tenders %}
+            {% for t in tenders %}
+            <div class="tender-card">
+                <div class="tender-card-top">
+                    <div class="tender-info">
+                        <h3><a href="{{ t.url }}" target="_blank" rel="noopener">{{ t.title }}</a></h3>
+                        <div class="buyer">{{ t.buyer }} · {{ t.buyer_country }}</div>
+                    </div>
+                    <div class="tender-details">
+                        {% if t.cpv_codes %}
+                        <div class="cpv-codes">
+                            {% for cpv in t.cpv_codes %}
+                            <span class="badge badge-accent">{{ cpv }}</span>
+                            {% endfor %}
+                        </div>
+                        {% elif t.cpv %}
+                        <span class="badge badge-accent">{{ t.cpv }}</span>
+                        {% endif %}
+                        {% if t.deadline %}
+                        <div class="tender-detail-item">
+                            <span class="label-text">Deadline</span>
+                            <span class="badge badge-muted">{{ t.deadline }}</span>
+                        </div>
+                        {% endif %}
+                        {% if t.estimated_value %}
+                        <div class="tender-detail-item">
+                            <span class="label-text">Value</span>
+                            <span class="badge badge-outline">{{ t.estimated_value }}</span>
+                        </div>
+                        {% endif %}
+                        {% if t.pub_date %}
+                        <div class="tender-detail-item">
+                            <span class="label-text">Published</span>
+                            <span class="badge badge-outline">{{ t.pub_date }}</span>
+                        </div>
+                        {% endif %}
+                        {% if t.procedure %}
+                        <div class="tender-detail-item">
+                            <span class="badge badge-outline">{{ t.procedure }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="no-tenders">
+            <div class="icon">📭</div>
+            <h3>No tenders found</h3>
+            <p>There are currently no active tenders to display. Check back soon — new tenders are published daily on TED.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Bottom CTA -->
+    <div class="bottom-cta">
+        <h2 class="gradient-text">Ready to Track Tenders That Match Your Business?</h2>
+        <p>Create a free account and choose a lead pack. We'll deliver new tenders to your dashboard every day.</p>
+        <a href="/register" class="btn btn-primary">Start Free — No Credit Card</a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <p>Data sourced from <a href="https://ted.europa.eu" target="_blank" rel="noopener">TED EU Tenders</a> · © 2026 LeadRadar</p>
+        </div>
     </footer>
+
 </body>
 </html>

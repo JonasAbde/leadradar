@@ -1,44 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get Started — LeadRadar</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .card { background: white; padding: 48px; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); width: 100%; max-width: 400px; }
-        h1 { font-size: 28px; margin-bottom: 8px; }
-        p { color: #64748b; margin-bottom: 24px; }
-        input { width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px; font-size: 15px; transition: border-color 0.2s; }
-        input:focus { outline: none; border-color: #2563eb; }
-        button { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        button:hover { background: #1d4ed8; }
-        .link { text-align: center; margin-top: 16px; font-size: 14px; color: #64748b; }
-        .link a { color: #2563eb; text-decoration: none; }
-        .logo { text-align: center; margin-bottom: 24px; font-size: 32px; }
-        .features { margin: 16px 0; font-size: 13px; color: #64748b; }
-        .features li { margin: 4px 0; }
-    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register — LeadRadar</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
 </head>
+
 <body>
-    <div class="card">
-        <div class="logo">📡</div>
-        <h1>Create account</h1>
-        <p>Start monitoring leads for free</p>
-        <form action="/api/register" method="post">
-            <input type="email" name="email" placeholder="you@company.dk" required>
-            <input type="password" name="password" placeholder="Create password (min 8 chars)" minlength="8" required>
-            <button type="submit">Create Free Account</button>
-        </form>
-        <ul class="features">
-            <li>✅ 1 source included</li>
-            <li>✅ Daily email reports</li>
-            <li>✅ No credit card required</li>
-        </ul>
-        <div class="link">
-            Already have an account? <a href="/login">Sign in</a>
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- Logo -->
+            <div class="auth-logo">
+                <div class="auth-logo-icon">📡</div>
+                <span class="auth-logo-text">LeadRadar</span>
+            </div>
+
+            <!-- Heading -->
+            <h1 class="auth-heading">Create your account</h1>
+            <p class="auth-subtitle">Start monitoring leads for free</p>
+
+            <!-- Error flash -->
+            {% if msg %}
+            <div class="auth-error" id="error-flash">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"
+                        opacity="0.6" />
+                    <path
+                        d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708" />
+                </svg>
+                {{ msg }}
+            </div>
+            {% endif %}
+
+            <!-- Register Form -->
+            <form class="auth-form" id="register-form" action="/api/register" method="post" novalidate>
+                <div class="input-group">
+                    <label for="name">Full name</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="name" name="name" placeholder="John Doe" autocomplete="name"
+                            required />
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="email">Email address</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="email" name="email" placeholder="you@company.com" autocomplete="email"
+                            required />
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" name="password" placeholder="Minimum 8 characters"
+                            minlength="8" autocomplete="new-password" required />
+                        <button type="button" class="password-toggle" id="toggle-password" aria-label="Toggle password visibility" tabindex="-1">
+                            Show
+                        </button>
+                    </div>
+                    <span class="password-hint">At least 8 characters</span>
+                </div>
+
+                <button type="submit" class="auth-submit" id="register-btn">Create Account</button>
+            </form>
+
+            <div class="auth-divider"></div>
+
+            <div class="auth-footer">
+                Already have an account? <a href="/login">Login</a>
+            </div>
         </div>
     </div>
+
+    <script>
+        // Show / Hide Password
+        (function () {
+            const pwInput = document.getElementById('password');
+            const toggle = document.getElementById('toggle-password');
+            if (pwInput && toggle) {
+                toggle.addEventListener('click', function () {
+                    const show = pwInput.type === 'password';
+                    pwInput.type = show ? 'text' : 'password';
+                    toggle.textContent = show ? 'Hide' : 'Show';
+                });
+            }
+        })();
+
+        // Client-side validation
+        (function () {
+            const form = document.getElementById('register-form');
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const submitBtn = document.getElementById('register-btn');
+
+            form.addEventListener('submit', function (e) {
+                let valid = true;
+                const name = nameInput.value.trim();
+                const email = emailInput.value.trim();
+                const password = passwordInput.value;
+
+                // Clear previous error states
+                nameInput.classList.remove('error');
+                emailInput.classList.remove('error');
+                passwordInput.classList.remove('error');
+
+                if (!name) {
+                    nameInput.classList.add('error');
+                    valid = false;
+                }
+
+                if (!email || !/^[^\s@]+@[^\s@]+\.[^\s]+$/.test(email)) {
+                    emailInput.classList.add('error');
+                    valid = false;
+                }
+
+                if (!password || password.length < 8) {
+                    passwordInput.classList.add('error');
+                    valid = false;
+                }
+
+                if (!valid) {
+                    e.preventDefault();
+                    return;
+                }
+
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating account…';
+            });
+
+            // Remove error on input
+            nameInput.addEventListener('input', function () {
+                nameInput.classList.remove('error');
+            });
+            emailInput.addEventListener('input', function () {
+                emailInput.classList.remove('error');
+            });
+            passwordInput.addEventListener('input', function () {
+                passwordInput.classList.remove('error');
+            });
+        })();
+
+        // Auto-dismiss flash message
+        (function () {
+            const flash = document.getElementById('error-flash');
+            if (flash) {
+                setTimeout(function () {
+                    flash.style.transition = 'opacity 400ms ease';
+                    flash.style.opacity = '0';
+                    setTimeout(function () { flash.remove(); }, 400);
+                }, 6000);
+            }
+        })();
+    </script>
 </body>
+
 </html>

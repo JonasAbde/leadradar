@@ -4,74 +4,144 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pricing — LeadRadar</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; }
-        .nav { background: #1e293b; border-bottom: 1px solid #334155; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
-        .nav a { color: #e2e8f0; text-decoration: none; font-weight: 600; transition: color 0.2s; }
-        .nav a:hover { color: #3b82f6; }
-        .container { max-width: 960px; margin: 0 auto; padding: 80px 24px 40px; }
-        h1 { text-align: center; font-size: 40px; margin-bottom: 8px; background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .subtitle { text-align: center; color: #94a3b8; margin-bottom: 56px; font-size: 18px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; }
-        .plan { background: #1e293b; padding: 36px; border-radius: 16px; border: 1px solid #334155; transition: border-color 0.3s, transform 0.2s; position: relative; }
-        .plan:hover { border-color: #3b82f6; transform: translateY(-4px); }
-        .plan.featured { border-color: #3b82f6; box-shadow: 0 0 40px rgba(59, 130, 246, 0.1); }
-        .badge-popular { position: absolute; top: -12px; right: 20px; background: linear-gradient(135deg, #3b82f6, #6366f1); color: white; padding: 4px 14px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .plan h3 { font-size: 22px; margin-bottom: 6px; color: #f1f5f9; }
-        .plan .desc { color: #94a3b8; font-size: 14px; margin-bottom: 16px; }
-        .price { font-size: 48px; font-weight: 800; color: #f1f5f9; margin: 16px 0; }
-        .price span { font-size: 16px; color: #94a3b8; font-weight: 400; }
-        .plan ul { list-style: none; margin: 24px 0 32px; }
-        .plan li { padding: 12px 0; border-bottom: 1px solid #1e293b; font-size: 15px; color: #cbd5e1; display: flex; align-items: flex-start; gap: 10px; }
-        .plan li::before { content: "✓"; color: #22c55e; font-weight: 700; flex-shrink: 0; }
-        .btn { display: block; text-align: center; padding: 16px; border-radius: 10px; font-weight: 700; font-size: 16px; text-decoration: none; transition: background 0.2s, box-shadow 0.2s; }
-        .btn-primary { background: linear-gradient(135deg, #3b82f6, #6366f1); color: white; }
-        .btn-primary:hover { box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3); }
-        .btn-outline { background: transparent; color: #3b82f6; border: 2px solid #3b82f6; }
-        .btn-outline:hover { background: #1e3a8a; }
-        .compare-section { max-width: 800px; margin: 80px auto 0; }
-        .compare-section h2 { text-align: center; font-size: 28px; margin-bottom: 32px; color: #f1f5f9; }
-        table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid #334155; }
-        th { background: #0f172a; padding: 16px; font-weight: 600; color: #94a3b8; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; text-align: left; }
-        td { padding: 14px 16px; border-top: 1px solid #334155; color: #cbd5e1; font-size: 14px; }
-        .check { color: #22c55e; font-weight: 700; font-size: 18px; }
-        .cross { color: #475569; font-size: 18px; }
-        .faq { max-width: 700px; margin: 64px auto 0; }
-        .faq h2 { text-align: center; font-size: 28px; margin-bottom: 32px; color: #f1f5f9; }
-        .faq-item { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 20px; margin-bottom: 12px; }
-        .faq-item h4 { color: #f1f5f9; margin-bottom: 8px; font-size: 15px; }
-        .faq-item p { color: #94a3b8; font-size: 14px; line-height: 1.6; }
+        .pricing-hero {
+            padding: 100px 24px 60px;
+            text-align: center;
+            position: relative;
+        }
+        .pricing-hero::before {
+            content: '';
+            position: absolute;
+            top: -160px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 700px;
+            height: 500px;
+            background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .pricing-hero h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 12px; position: relative; }
+        .pricing-hero .subtitle { color: var(--text-secondary); font-size: 18px; max-width: 480px; margin: 0 auto; position: relative; }
+
+        .pricing-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; max-width: 800px; margin: 48px auto 0; }
+        .plan-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 36px 32px;
+            position: relative;
+            transition: border-color var(--transition), transform var(--transition);
+        }
+        .plan-card:hover { transform: translateY(-4px); }
+        .plan-card.featured { border-color: var(--accent); box-shadow: 0 0 50px var(--accent-glow); }
+        .plan-card .popular-badge {
+            position: absolute;
+            top: -12px;
+            right: 24px;
+            background: var(--accent);
+            color: #fff;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .plan-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+        .plan-card .desc { color: var(--text-secondary); font-size: 14px; margin-bottom: 20px; }
+        .plan-card .price { font-size: 48px; font-weight: 800; margin: 12px 0; }
+        .plan-card .price span { font-size: 16px; font-weight: 400; color: var(--text-secondary); }
+        .plan-card ul { list-style: none; margin: 24px 0 32px; }
+        .plan-card li {
+            padding: 10px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .plan-card li::before { content: "✓"; color: var(--success); font-weight: 700; flex-shrink: 0; }
+
+        /* comparison table */
+        .comparison-section { max-width: 700px; margin: 80px auto 0; }
+        .comparison-section h2 { text-align: center; font-size: 28px; font-weight: 800; margin-bottom: 32px; }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .comparison-table th {
+            background: var(--bg-surface);
+            padding: 14px 18px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            text-align: left;
+        }
+        .comparison-table td {
+            padding: 14px 18px;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        .comparison-table tr:first-child td { border-top: none; }
+        .comp-check { color: var(--success); font-weight: 700; font-size: 18px; }
+        .comp-cross { color: var(--text-muted); font-size: 18px; }
+
+        /* faq */
+        .faq-section { max-width: 700px; margin: 80px auto 0; }
+        .faq-section h2 { text-align: center; font-size: 28px; font-weight: 800; margin-bottom: 32px; }
+
+        /* cta */
+        .bottom-cta { text-align: center; padding: 64px 24px; margin-top: 40px; }
+        .bottom-cta h2 { font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+        .bottom-cta p { color: var(--text-secondary); margin-bottom: 24px; font-size: 16px; }
+
         @media (max-width: 768px) {
-            h1 { font-size: 32px; }
-            .price { font-size: 40px; }
-            .grid { grid-template-columns: 1fr; }
+            .pricing-hero { padding: 80px 16px 40px; }
+            .plan-card .price { font-size: 40px; }
         }
     </style>
 </head>
 <body>
-    <nav class="nav">
-        <a href="/">LeadRadar</a>
-        <div>
-            {% if user %}
-            <a href="/dashboard" style="margin-right: 16px;">Dashboard</a>
-            {% else %}
-            <a href="/login" style="margin-right: 16px;">Sign In</a>
-            <a href="/register">Get Started</a>
-            {% endif %}
+
+    <!-- Nav -->
+    <nav class="top-nav">
+        <div class="nav-inner">
+            <a href="/" class="nav-brand">📡 LeadRadar</a>
+            <div class="nav-links">
+                {% if user %}
+                <a href="/dashboard" class="nav-link">Dashboard</a>
+                {% else %}
+                <a href="/login" class="nav-link">Sign In</a>
+                <a href="/register" class="nav-link">Get Started</a>
+                {% endif %}
+            </div>
         </div>
     </nav>
 
-    <div class="container">
-        <h1>Simple, Transparent Pricing</h1>
+    <!-- Hero -->
+    <section class="pricing-hero">
+        <h1 class="gradient-text">Simple, transparent pricing</h1>
         <p class="subtitle">Start free. Upgrade when you need more power.</p>
 
-        <div class="grid">
-            <div class="plan featured">
-                <div class="badge-popular">Most Popular</div>
+        <div class="pricing-cards">
+            <!-- Pro -->
+            <div class="plan-card featured">
+                <div class="popular-badge">Most Popular</div>
                 <h3>Pro</h3>
-                <p class="desc">For single businesses hunting leads</p>
-                <div class="price">DKK 499<span>/month</span></div>
+                <div class="desc">For single businesses hunting leads</div>
+                <div class="price">499 <span>DKK/mo</span></div>
                 <ul>
                     <li>Single business workspace</li>
                     <li>1 lead pack of your choice</li>
@@ -82,16 +152,17 @@
                     <li>Email & dashboard alerts</li>
                 </ul>
                 {% if user %}
-                    <a href="#" onclick="upgrade('pro')" class="btn btn-primary">Upgrade to Pro</a>
+                    <button onclick="upgrade('pro')" class="btn btn-primary btn-block">Upgrade to Pro</button>
                 {% else %}
-                    <a href="/register" class="btn btn-primary">Start Free Trial</a>
+                    <a href="/register" class="btn btn-primary btn-block">Start Free Trial</a>
                 {% endif %}
             </div>
 
-            <div class="plan">
+            <!-- Agency -->
+            <div class="plan-card">
                 <h3>Agency</h3>
-                <p class="desc">For agencies managing multiple clients</p>
-                <div class="price">DKK 1,499<span>/month</span></div>
+                <div class="desc">For agencies managing multiple clients</div>
+                <div class="price">1,499 <span>DKK/mo</span></div>
                 <ul>
                     <li>Multiple client workspaces</li>
                     <li>All lead packs (IT, Construction, Consulting, Cleaning)</li>
@@ -102,51 +173,104 @@
                     <li>CSV & API export</li>
                 </ul>
                 {% if user %}
-                    <a href="#" onclick="upgrade('agency')" class="btn btn-outline">Upgrade to Agency</a>
+                    <button onclick="upgrade('agency')" class="btn btn-ghost btn-block" style="border-color: var(--accent); color: var(--accent-light);">Upgrade to Agency</button>
                 {% else %}
-                    <a href="/register" class="btn btn-outline">Start Free Trial</a>
+                    <a href="/register" class="btn btn-ghost btn-block" style="border-color: var(--accent); color: var(--accent-light);">Start Free Trial</a>
                 {% endif %}
             </div>
         </div>
+    </section>
 
-        <div class="compare-section">
-            <h2>Compare Plans</h2>
-            <table>
-                <tr><th>Feature</th><th>Pro</th><th>Agency</th></tr>
+    <!-- Comparison Table -->
+    <section class="comparison-section">
+        <h2>Compare Plans</h2>
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Pro</th>
+                    <th>Agency</th>
+                </tr>
+            </thead>
+            <tbody>
                 <tr><td>Lead packs</td><td>1 pack</td><td>All packs</td></tr>
                 <tr><td>Leads per month</td><td>50</td><td>Unlimited</td></tr>
                 <tr><td>Update frequency</td><td>Daily</td><td>Real-time</td></tr>
-                <tr><td>CRM sync</td><td>✓</td><td>✓</td></tr>
-                <tr><td>CVR enrichment</td><td>✓</td><td>✓</td></tr>
-                <tr><td>Client workspaces</td><td class="cross">✗</td><td class="check">✓</td></tr>
-                <tr><td>API access</td><td class="cross">✗</td><td class="check">✓</td></tr>
-                <tr><td>Priority support</td><td class="cross">✗</td><td class="check">✓</td></tr>
-                <tr><td>CSV export</td><td>✓</td><td>✓</td></tr>
-            </table>
+                <tr><td>CRM sync</td><td class="comp-check">✓</td><td class="comp-check">✓</td></tr>
+                <tr><td>CVR enrichment</td><td class="comp-check">✓</td><td class="comp-check">✓</td></tr>
+                <tr><td>Client workspaces</td><td class="comp-cross">✗</td><td class="comp-check">✓</td></tr>
+                <tr><td>API access</td><td class="comp-cross">✗</td><td class="comp-check">✓</td></tr>
+                <tr><td>Priority support</td><td class="comp-cross">✗</td><td class="comp-check">✓</td></tr>
+                <tr><td>CSV export</td><td class="comp-check">✓</td><td class="comp-check">✓</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq-section">
+        <h2>Frequently Asked Questions</h2>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                What is a "lead pack"?
+                <span class="arrow">+</span>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">A lead pack is a pre-configured industry filter — e.g., IT & Software, Construction, Consulting. Each pack contains relevant CPV codes used to query the TED EU tender database.</div>
+            </div>
         </div>
 
-        <div class="faq">
-            <h2>FAQ</h2>
-            <div class="faq-item">
-                <h4>What is a "lead pack"?</h4>
-                <p>A lead pack is a pre-configured industry filter — e.g., IT & Software, Construction, Consulting. Each pack contains relevant CPV codes used to query the TED EU tender database.</p>
-            </div>
-            <div class="faq-item">
-                <h4>Can I switch lead packs?</h4>
-                <p>Pro plan includes 1 active pack at a time. You can switch any time. Agency plan gives you access to all packs simultaneously.</p>
-            </div>
-            <div class="faq-item">
-                <h4>Do I need a Stripe account?</h4>
-                <p>No — Stripe is used for payment processing on our end. You just provide your credit card details during checkout.</p>
-            </div>
-            <div class="faq-item">
-                <h4>Is there a free trial?</h4>
-                <p>Yes! Register for free to explore the dashboard and see sample tenders before committing to a paid plan.</p>
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                Can I switch lead packs?
+                <span class="arrow">+</span>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">Pro plan includes 1 active pack at a time. You can switch any time. Agency plan gives you access to all packs simultaneously.</div>
             </div>
         </div>
-    </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                Do I need a Stripe account?
+                <span class="arrow">+</span>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">No — Stripe is used for payment processing on our end. You just provide your credit card details during checkout.</div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                Is there a free trial?
+                <span class="arrow">+</span>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">Yes! Register for free to explore the dashboard and see sample tenders before committing to a paid plan.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <section class="bottom-cta">
+        <h2 class="gradient-text">Start your free trial today</h2>
+        <p>No credit card required. Set up in under 2 minutes.</p>
+        <a href="/register" class="btn btn-primary">Start Free Trial</a>
+    </section>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <p>© 2026 LeadRadar</p>
+        </div>
+    </footer>
 
     <script>
+    function toggleFaq(btn) {
+        const item = btn.closest('.faq-item');
+        item.classList.toggle('open');
+    }
+
     async function upgrade(tier) {
         try {
             const resp = await fetch(`/api/create-checkout-session?tier=${tier}`);

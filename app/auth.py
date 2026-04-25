@@ -1,22 +1,17 @@
-import bcrypt
+import os, re, bcrypt
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from . import models
-import os
 
-SECRET_KEY = os.getenv("SECRET_KEY", "")
+SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
-    raise RuntimeError("SECRET_KEY environment variable is required. Set it in .env or run: export SECRET_KEY=$(openssl rand -hex 32)")
+    raise RuntimeError("SECRET_KEY environment variable is required. Set it in .env or run: python3 -c 'import secrets; print(secrets.token_hex(32))'")
+
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_DAYS = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS", "7"))
-
-# Password policy
-MIN_PASSWORD_LENGTH = 8
-
-import re as _re
+ACCESS_TOKEN_EXPIRE_DAYS = int(os.environ.get("ACCESS_TOKEN_EXPIRE_DAYS", "7"))
 
 security = HTTPBearer(auto_error=False)
 
@@ -52,27 +47,27 @@ def get_current_user(
     db: Session = Depends(models.get_db)
 ) -> models.User:
     token = None
-    
+
     # Check Authorization header
     if credentials:
         token = credentials.credentials
     else:
         # Check cookie
         token = request.cookies.get("access_token")
-    
+
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = int(payload.get("sub"))
     except (JWTError, ValueError):
         raise HTTPException(status_code=401, detail="Invalid token")
-    
+
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user or not user.active:
         raise HTTPException(status_code=401, detail="User not found")
-    
+
     return user
 
 def get_current_user_optional(

@@ -4,71 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Your Pack — LeadRadar</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; color: #1e293b; }
-        .nav { background: white; border-bottom: 1px solid #e2e8f0; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
-        .nav a { color: #2563eb; text-decoration: none; font-weight: 600; }
-        .nav .right { display: flex; align-items: center; gap: 16px; }
-        .container { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
-        .header { text-align: center; margin-bottom: 40px; }
-        .header h1 { font-size: 28px; margin-bottom: 8px; }
-        .header p { color: #64748b; font-size: 16px; }
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-        @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
-        .card {
-            background: white; border-radius: 12px; border: 2px solid #e2e8f0;
-            padding: 24px; cursor: pointer; transition: all 0.2s; position: relative;
+        .onboard-wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px 80px; }
+        .onboard-header { text-align: center; margin-bottom: 40px; }
+        .onboard-header h1 { font-size: clamp(24px, 4vw, 34px); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+        .onboard-header p { color: var(--text-secondary); font-size: 16px; }
+
+        .pack-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 32px; }
+        @media (max-width: 600px) { .pack-grid { grid-template-columns: 1fr; } }
+
+        .pack-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            cursor: pointer;
+            transition: all var(--transition);
+            position: relative;
+            display: flex;
+            flex-direction: column;
         }
-        .card:hover { border-color: #2563eb; box-shadow: 0 4px 12px rgba(37,99,235,0.1); transform: translateY(-2px); }
-        .card.selected { border-color: #2563eb; background: #eff6ff; }
-        .card .icon { font-size: 40px; margin-bottom: 12px; }
-        .card h3 { font-size: 18px; margin-bottom: 6px; }
-        .card p { font-size: 13px; color: #64748b; margin-bottom: 12px; line-height: 1.5; }
-        .card .cpv { font-size: 11px; color: #94a3b8; }
-        .card .check {
-            position: absolute; top: 12px; right: 12px; width: 24px; height: 24px;
-            background: #2563eb; color: white; border-radius: 50%; display: none;
-            align-items: center; justify-content: center; font-size: 14px;
+        .pack-card:hover { border-color: var(--border-light); background: var(--bg-card-hover); transform: translateY(-2px); }
+        .pack-card.selected { border-color: var(--accent); background: rgba(94, 106, 210, 0.06); box-shadow: 0 0 30px var(--accent-glow); }
+        .pack-card .icon { font-size: 36px; margin-bottom: 14px; }
+        .pack-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        .pack-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px; flex: 1; }
+        .pack-card .cpv {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .card.selected .check { display: flex; }
-        .btn { display: inline-block; padding: 12px 32px; border-radius: 8px; font-size: 16px; font-weight: 600; border: none; cursor: pointer; }
-        .btn-primary { background: #2563eb; color: white; }
-        .btn-primary:hover { background: #1d4ed8; }
-        .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
-        .btn-secondary { background: white; color: #2563eb; border: 1px solid #e2e8f0; }
-        .btn-secondary:hover { background: #f8fafc; }
-        .footer { margin-top: 40px; text-align: center; display: flex; justify-content: center; gap: 12px; align-items: center; }
-        .error-box { background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; margin-bottom: 24px; color: #92400e; }
-        .error-box h4 { margin-bottom: 4px; }
-        .error-box p { font-size: 13px; }
-        .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #e2e8f0; border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-overlay { text-align: center; padding: 24px; color: #64748b; }
+        .pack-card .check {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+        }
+        .pack-card.selected .check { display: flex; }
+
+        .onboard-footer { display: flex; align-items: center; justify-content: center; gap: 16px; }
+        .onboard-footer .selected-text { font-size: 14px; color: var(--text-muted); }
+
+        @media (max-width: 768px) {
+            .onboard-wrap { padding: 32px 16px 56px; }
+        }
     </style>
 </head>
 <body>
-    <nav class="nav">
-        <a href="/">📡 LeadRadar</a>
-        <div class="right">
-            <span>{{ user.email }}</span>
-            <a href="/api/logout">Logout</a>
+
+    <!-- Nav -->
+    <nav class="top-nav">
+        <div class="nav-inner">
+            <a href="/" class="nav-brand">📡 LeadRadar</a>
+            <div class="nav-links">
+                {% if user %}
+                <span class="nav-link" style="color: var(--text-primary);">{{ user.email }}</span>
+                <a href="/api/logout" class="nav-link">Logout</a>
+                {% endif %}
+            </div>
         </div>
     </nav>
 
-    <div class="container">
-        <div class="header">
-            <h1>🎯 Choose Your Lead Pack</h1>
-            <p>Select the industry that best matches your business. We'll configure your first source and find matching EU tenders.</p>
+    <div class="onboard-wrap">
+        <div class="onboard-header">
+            <h1>What industry are you in?</h1>
+            <p>Select the category that best matches your business. We'll configure your lead pack and start finding matching tenders.</p>
         </div>
 
         {% if try_broader %}
-        <div class="error-box">
-            <h4>⚠️ No tenders found with that pack</h4>
-            <p>
-                There are currently no matching EU tenders in Denmark for this pack.
-                Try selecting a different pack — broader categories like <strong>Construction</strong> or <strong>Consulting</strong> often yield more results.
-            </p>
+        <div class="banner-warning">
+            <span>⚠️</span>
+            <div>
+                <strong>No tenders found</strong> — try a broader category. Construction or Consulting often yield more results.
+            </div>
         </div>
         {% endif %}
 
@@ -76,9 +99,9 @@
             <input type="hidden" name="pack_slug" id="packSlug">
         </form>
 
-        <div class="grid">
+        <div class="pack-grid">
             {% for slug, pack in packs.items() %}
-            <div class="card" onclick="selectPack('{{ slug }}')" id="card-{{ slug }}">
+            <div class="pack-card" onclick="selectPack('{{ slug }}')" id="card-{{ slug }}">
                 <div class="check">✓</div>
                 <div class="icon">
                     {% if slug == 'cleaning_facility' %}🧹
@@ -99,15 +122,18 @@
                     Discover management consulting, advisory, and business service contract opportunities.
                     {% endif %}
                 </p>
-                <div class="cpv">{{ pack.cpv_codes|length }} CPV codes • {{ pack.country }} • {{ pack.keywords|length }} keywords</div>
+                <div class="cpv">
+                    <span class="badge badge-accent">{{ pack.cpv_codes|length }} CPV codes</span>
+                    <span class="badge badge-outline">{{ pack.country }}</span>
+                </div>
             </div>
             {% endfor %}
         </div>
 
-        <div class="footer">
-            <span id="selectedText" style="color: #64748b; font-size: 14px;">Select a pack to continue</span>
+        <div class="onboard-footer">
+            <span id="selectedText" class="selected-text">Select a pack to continue</span>
             <button type="button" class="btn btn-primary" id="confirmBtn" disabled onclick="submitPack()">
-                Start Scanning →
+                Continue →
             </button>
         </div>
     </div>
@@ -117,7 +143,7 @@
 
     function selectPack(slug) {
         selectedPack = slug;
-        document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+        document.querySelectorAll('.pack-card').forEach(c => c.classList.remove('selected'));
         document.getElementById('card-' + slug).classList.add('selected');
         document.getElementById('packSlug').value = slug;
         document.getElementById('confirmBtn').disabled = false;
@@ -126,7 +152,7 @@
             'cleaning_facility': 'Cleaning & Facility',
             'it_software': 'IT & Software',
             'construction': 'Construction & Infrastructure',
-            'consulting': 'Consulting & Business',
+            'consulting': 'Consulting & Business Services',
         };
         document.getElementById('selectedText').textContent = `Selected: ${pack[slug]}`;
     }
@@ -135,7 +161,7 @@
         if (!selectedPack) return;
         const btn = document.getElementById('confirmBtn');
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner"></span>Configuring & Scanning...';
+        btn.innerHTML = '<span class="spinner"></span> Configuring & Scanning...';
 
         try {
             const payload = new FormData();
@@ -156,7 +182,7 @@
             }
         } catch (e) {
             btn.disabled = false;
-            btn.textContent = 'Start Scanning →';
+            btn.textContent = 'Continue →';
             alert('Error configuring pack. Please try again.');
         }
     }
