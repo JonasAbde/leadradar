@@ -82,6 +82,20 @@ class Lead(Base):
     crm_sync_attempts = Column(Integer, default=0)
     crm_idempotency_key = Column(String, nullable=True)  # lead_id + timestamp hash
     
+    # ── TED Tender fields ──
+    notice_identifier = Column(String, nullable=True)        # TED notice identifier
+    notice_idempotency_key = Column(String, nullable=True, unique=True)  # pub_number for dedup
+    cpv_values = Column(Text, nullable=True)                 # JSON array of CPV codes
+    estimated_value = Column(Float, nullable=True)           # EUR value
+    deadline_date = Column(String, nullable=True)            # Tender deadline
+    procurement_type = Column(String, nullable=True)         # procedure-type
+    notice_subtype = Column(String, nullable=True)           # notice-subtype
+    source_url = Column(String, nullable=True)               # TED notice URL
+    buyer_country = Column(String, default="DNK")            # ISO 3166-1 alpha-3
+    data_source = Column(String, default="ted")              # "ted", "cvr", etc.
+    is_stale = Column(Boolean, default=False)                # whether notice is expired
+    last_seen_at = Column(String, nullable=True)             # last fetch timestamp
+    
     user = relationship("User", back_populates="leads")
 
 class CRMSyncQueue(Base):

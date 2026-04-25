@@ -255,88 +255,67 @@ class CompetitorScraper(BaseScraper):
         return results
 
 class TEDScraper(BaseScraper):
-    """Scrape EU tender notices from TED (Tenders Electronic Daily).
-    CPV codes:
-      90 = Sewage/refuse/sanitation (includes cleaning)
-      90900000 = Cleaning services specifically
+    """Fetch EU tender notices from TED via official API v3.
+    Uses TEDProvider to search with pack-specific CPV codes.
     """
-    BASE_URL = "https://ted.europa.eu/en/s/search"
-    
     def scrape(self) -> List[Dict]:
+        from .ted_provider import TEDProvider
+        from .lead_packs import LEAD_PACKS
+        from .scoring import score_lead
+
         results = []
-        cpv = self.config.get("cpv", "90")
-        country = self.config.get("country", "DK")
-        notice_type = self.config.get("notice_type", "Contract+notice")
-        max_pages = min(self.config.get("max_pages", 3), 5)
-        
-        for page in range(1, max_pages + 1):
-            try:
-                url = (
-                    f"{self.BASE_URL}?page={page}&theme=CPV&value={cpv}"
-                    f"&country={country}&noticeType={notice_type}"
-                )
-                resp = _polite_get(url)
-                if not resp or resp.status_code != 200:
-                    continue
-                
-                soup = BeautifulSoup(resp.text, "html.parser")
-                # TED search results: each notice is in an <article> tag
-                articles = soup.find_all("article")
-                if not articles:
-                    break
-                
-                for article in articles:
-                    try:
-                        # Title link
-                        a = article.find("a", href=re.compile(r"/en/notice/"))
-                        if not a:
-                            continue
-                        title = a.get_text(strip=True)
-                        notice_url = "https://ted.europa.eu" + a["href"]
-                        
-                        # Contracting authority / company
-                        authority = ""
-                        auth_elem = article.find(string=re.compile(r"Contracting\s+authority|Name", re.I))
-                        if auth_elem:
-                            authority = auth_elem.find_next().get_text(strip=True)
-                        
-                        # Description / CPV
-                        desc = ""
-                        desc_elem = article.find(string=re.compile(r"Main\s+CPV", re.I))
-                        if desc_elem:
-                            desc = desc_elem.find_next().get_text(strip=True)
-                        
-                        results.append({
-                            "title": title,
-                            "description": desc or f"EU udbud - CPV {cpv}",
-                            "url": notice_url,
-                            "company": authority or "EU Institution",
-                            "location": country,
-                            "score": 60,  # tenders are high-value signals
-                            "source_type": "ted_eu"
-                        })
-                    except Exception:
-                        continue
-                
-                # Stop if no more results (pagination ends)
-                if len(articles) < 10:
-                    break
-                    
-            except Exception as e:
-                print(f"TED scraping error page {page}: {e}")
-                break
-        
+        # Config can specify: pack (slug), country, cpv_codes, max_pages
+        pack_slug = self.config.get("pack")
+        country = self.config.get("country", "DNK")
+        max_pages = min(self.config.get("max_pages", 3), 10)
+
+        if pack_slug and pack_slug in LEAD_PACKS:
+            pack = LEAD_PACKS[pack_slug]
+            cpv_codes = pack.get("cpv_codes", [])
+            keywords = pack.get("keywords", [])
+        else:
+            cpv_codes = self.config.get("cpv_codes", [])
+            keywords = []
+
+        provider = TEDProvider()
+        notices = provider.fetch_tenders(
+            country=country,
+            cpv_codes=cpv_codes,
+            max_pages=max_pages,
+        )
+
+        for notice in notices:
+            # Score the notice
+            score, reasons = score_lead(notice, cpv_codes=cpv_codes, keywords=keywords)
+
+            results.append({
+                **notice,
+                "score": score,
+                "score_reasons": ", ".join(reasons),
+                "description": notice.get("procedure", ""),
+                "source_type": "ted_eu",
+                # Map to existing Lead fields
+                "title": notice.get("title", ""),
+                "company": notice.get("buyer", ""),
+                "location": notice.get("buyer_country", "DNK"),
+                "url": notice.get("url", ""),
+                "cpv_values": cpv_codes,
+                "deadline_date": "",
+                "estimated_value": None,
+            })
+
         return results
 
 class RSSPresetScraper(BaseScraper):
-    """Use hardcoded Danish RSS feeds for instant news signals.
-    No user URL required — selects from preset list in config.
-    """
-    from .rss_presets import RSS_PRESETS
+    """Scrape from RSS feed presets"""
+    RSS_PRESETS = {
+        "version2": {"name": "Version2", "url": "https://www.version2.dk/rss"},
+        "berlingske": {"name": "Berlingske Business", "url": "https://www.berlingske.dk/rss/business"},
+    }
     
     def scrape(self) -> List[Dict]:
         results = []
-        preset_key = self.config.get("preset", "version2_tech")
+        preset_key = self.config.get("preset", "version2")
         keywords = self.config.get("keywords", [])
         preset = self.RSS_PRESETS.get(preset_key)
         
