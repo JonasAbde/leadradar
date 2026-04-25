@@ -85,6 +85,48 @@ def pricing(request: Request, user: models.User = Depends(get_current_user_optio
 def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
+@app.get("/demo", response_class=HTMLResponse)
+def demo_page(request: Request):
+    """Public demo page showing real TED tenders. No auth required."""
+    from app.ted_provider import TEDProvider
+    from app.lead_packs import LEAD_PACKS
+
+    all_tenders = []
+    provider = TEDProvider()
+
+    # Fetch from first 3 packs for variety
+    pack_count = 0
+    for slug, pack in LEAD_PACKS.items():
+        if pack_count >= 3:
+            break
+        notices = provider.fetch_tenders(
+            country=pack.get("country", "DNK"),
+            cpv_codes=pack["cpv_codes"],
+            max_pages=1,
+            limit=10,
+        )
+        for n in notices:
+            n["pack_name"] = pack["name"]
+            n["pack_slug"] = slug
+            all_tenders.append(n)
+        pack_count += 1
+
+    # Deduplicate by pub_number
+    seen = set()
+    unique = []
+    for t in all_tenders:
+        pn = t.get("pub_number", "")
+        if pn and pn not in seen:
+            seen.add(pn)
+            unique.append(t)
+
+    return templates.TemplateResponse("demo.html", {
+        "request": request,
+        "tenders": unique[:10],
+        "total_count": len(unique),
+    })
+
+
 @app.get("/register", response_class=HTMLResponse)
 def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
@@ -925,4 +967,38 @@ def update_prefs(
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "time": datetime.utcnow().isoformat()}
+    """Health check endpoint for ops monitoring."""
+    # Check database connection
+    try:
+        db = next(models.get_db())
+        db.execute("SELECT 1")
+        db_status = "connected"
+    except Exception:
+        db_status = "error"
+    finally:
+        try:
+            db.close()
+        except Exception:
+            pass
+
+    # Check scheduler status
+    try:
+        from .scheduler import scheduler
+        scheduler_status = "running" if scheduler.running else "stopped"
+    except Exception:
+        scheduler_status = "not_loaded"
+
+    # Check TED API availability (basic connectivity check)
+    try:
+        import httpx
+        resp = httpx.get("https://ted.europa.eu", timeout=5.0)
+        ted_status = "available" if resp.status_code < 500 else "error"
+    except Exception:
+        ted_status = "unavailable"
+
+    return {
+        "status": "ok",
+        "db": db_status,
+        "scheduler": scheduler_status,
+        "ted_api": ted_status
+    }

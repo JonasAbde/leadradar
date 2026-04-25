@@ -73,3 +73,38 @@ Priority: MEDIUM | Impact: Scale
 
 ## Next Action (Pending Jonas)
 Choose Phase 1, 2, or 3 to start building.
+
+---
+
+## Dual SQLite Database Problem
+
+There are two SQLite database files in the project root:
+
+### `data/leadradar.db` (ACTIVE)
+- Path: `./data/leadradar.db`
+- Configured via `DATABASE_URL=sqlite:///./data/leadradar.db` in `.env`
+- This is the production database used by the running application
+- All migrations (001-005) have been applied to this file
+- Contains all user data, leads, sources, alerts, etc.
+
+### `leadradar.db` (ORPHANED)
+- Path: `./leadradar.db` (project root)
+- Legacy database from initial setup before `data/` directory was created
+- Original `DATABASE_URL` pointed to `sqlite:///./leadradar.db`
+- Contains 1 user account but no migrated schema
+- **No longer connected to the application**
+
+### Resolution
+- The orphan database is being relocated to `data/leadradar_legacy.db` for safekeeping.
+- If data from the orphan is needed, it can be inspected with `sqlite3 data/leadradar_legacy.db` and manually migrated.
+- Future deployments will only use `data/leadradar.db`.
+
+### Migration Steps (if needed)
+```bash
+# Inspect orphan database
+sqlite3 data/leadradar_legacy.db ".tables"
+sqlite3 data/leadradar_legacy.db "SELECT * FROM users;"
+
+# If you need to merge data, copy specific tables or records manually
+# The active DB (data/leadradar.db) is the source of truth.
+```
