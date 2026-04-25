@@ -39,6 +39,7 @@
 
             <!-- Register Form -->
             <form class="auth-form" id="register-form" action="/api/register" method="post" novalidate>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="input-group">
                     <label for="name">Full name</label>
                     <div class="input-wrapper">

@@ -23,27 +23,37 @@ client = TestClient(app)
 
 # ─── AUTH ───
 def test_register_invalid_email():
-    r = client.post("/api/register", data={"email": "bad", "password": "***"})
+    client.get("/register")
+    csrf = client.cookies.get("csrf_token", "")
+    r = client.post("/api/register", data={"email": "bad", "password": "***", "csrf_token": csrf})
     assert r.status_code == 400
     assert "Invalid email" in r.json()["detail"]
 
 def test_register_short_password():
-    r = client.post("/api/register", data={"email": "a@b.co", "password": "a"})
+    client.get("/register")
+    csrf = client.cookies.get("csrf_token", "")
+    r = client.post("/api/register", data={"email": "a@b.co", "password": "a", "csrf_token": csrf})
     assert r.status_code == 400
     assert "Password" in r.json()["detail"] or "password" in r.json()["detail"]
 
 def test_register_and_login():
     import uuid
     email = f"test_{uuid.uuid4().hex[:8]}@x.co"
-    r = client.post("/api/register", data={"email": email, "password": "***"}, follow_redirects=False)
+    client.get("/register")
+    csrf = client.cookies.get("csrf_token", "")
+    r = client.post("/api/register", data={"email": email, "password": "***", "csrf_token": csrf}, follow_redirects=False)
     assert r.status_code == 303
     assert "/dashboard" in r.headers.get("location", "")
-    r = client.post("/api/login", data={"email": email, "password": "***"}, follow_redirects=False)
+    client.get("/login")
+    csrf = client.cookies.get("csrf_token", "")
+    r = client.post("/api/login", data={"email": email, "password": "***", "csrf_token": csrf}, follow_redirects=False)
     assert r.status_code == 303
     assert "/dashboard" in r.headers.get("location", "")
 
 def test_login_wrong_password():
-    r = client.post("/api/login", data={"email": "test@leadradar.dk", "password": "***"})
+    client.get("/login")
+    csrf = client.cookies.get("csrf_token", "")
+    r = client.post("/api/login", data={"email": "test@leadradar.dk", "password": "***", "csrf_token": csrf})
     assert r.status_code == 401
 
 def test_dashboard_without_auth():
@@ -134,8 +144,13 @@ def test_mock_crm_provider_no_contact_data():
 def test_alert_api_flow():
     import uuid
     email = f"alert_{uuid.uuid4().hex[:8]}@x.co"
-    client.post("/api/register", data={"email": email, "password": "***"})
-    client.post("/api/login", data={"email": email, "password": "***"})
+    # Get CSRF token first
+    r = client.get("/register")
+    csrf = client.cookies.get("csrf_token", "")
+    client.post("/api/register", data={"email": email, "password": "***", "csrf_token": csrf}, follow_redirects=False)
+    r = client.get("/login")
+    csrf = client.cookies.get("csrf_token", "")
+    client.post("/api/login", data={"email": email, "password": "***", "csrf_token": csrf}, follow_redirects=False)
 
     # Default prefs
     r = client.get("/api/notification-prefs")

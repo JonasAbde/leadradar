@@ -22,6 +22,7 @@ from .auth import (
     get_current_user, get_current_user_optional,
     hash_password, verify_password, create_access_token, validate_password
 )
+from .csrf import generate_csrf_token
 from .scrapers import get_scraper
 from .mail import send_daily_report
 from .stripe_config import get_checkout_session_url, handle_webhook, SUBSCRIPTION_LIMITS
@@ -89,7 +90,10 @@ def pricing(request: Request, user: models.User = Depends(get_current_user_optio
 
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    token = generate_csrf_token()
+    response = templates.TemplateResponse("login.html", {"request": request, "csrf_token": token})
+    response.set_cookie("csrf_token", token, httponly=False, samesite="lax")
+    return response
 
 @app.get("/demo", response_class=HTMLResponse)
 def demo_page(request: Request):
@@ -236,7 +240,10 @@ def demo_page(request: Request):
 
 @app.get("/register", response_class=HTMLResponse)
 def register_page(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request})
+    token = generate_csrf_token()
+    response = templates.TemplateResponse("register.html", {"request": request, "csrf_token": token})
+    response.set_cookie("csrf_token", token, httponly=False, samesite="lax")
+    return response
 
 # ============== ONBOARDING ==============
 
@@ -341,8 +348,11 @@ def register(
     request: Request,
     email: str = Form(...),
     password: str = Form(...),
+    csrf_token: str = Form(None),
     db: Session = Depends(models.get_db)
 ):
+    if request.cookies.get("csrf_token") and request.cookies.get("csrf_token") != csrf_token:
+        raise HTTPException(403, "Invalid CSRF token")
     from email_validator import validate_email, EmailNotValidError
     
     # Validate email format
@@ -402,8 +412,11 @@ def login(
     request: Request,
     email: str = Form(...),
     password: str = Form(...),
+    csrf_token: str = Form(None),
     db: Session = Depends(models.get_db)
 ):
+    if request.cookies.get("csrf_token") and request.cookies.get("csrf_token") != csrf_token:
+        raise HTTPException(403, "Invalid CSRF token")
     user = db.query(models.User).filter(models.User.email == email).first()
     if not user or not verify_password(password, user.password_hash):
         logger.warning(f"Failed login attempt for {email} from {request.client.host if request.client else 'unknown'}")
@@ -424,6 +437,86 @@ def logout():
     response = RedirectResponse("/", status_code=303)
     response.delete_cookie("access_token")
     return response
+
+# ============== PASSWORD RESET ==============
+
+@app.get("/forgot-password", response_class=HTMLResponse)
+def forgot_password_page(request: Request):
+    token = generate_csrf_token()
+    response = templates.TemplateResponse("forgot_password.html", {"request": request, "csrf_token": token})
+    response.set_cookie("csrf_token", token, httponly=False, samesite="lax")
+    return response
+
+@app.post("/api/forgot-password")
+@limiter.limit("3/minute")
+def forgot_password(
+    request: Request,
+    email: str = Form(...),
+    csrf_token: str = Form(None),
+    db: Session = Depends(models.get_db)
+):
+    if request.cookies.get("csrf_token") and request.cookies.get("csrf_token") != csrf_token:
+        raise HTTPException(403, "Invalid CSRF token")
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if user:
+        token = generate_verification_token(email)
+        reset_url = f"{request.base_url}reset-password/{token}"
+        from .mail import send_instant_alert_email
+        send_instant_alert_email(
+            to_email=email,
+            subject="Reset your LeadRadar password",
+            body=f"Click to reset your password: {reset_url}",
+            link=reset_url
+        )
+    return templates.TemplateResponse("forgot_password.html", {
+        "request": request,
+        "success": True
+    })
+
+@app.get("/reset-password/{token}", response_class=HTMLResponse)
+def reset_password_page(token: str, request: Request):
+    email = verify_token(token)
+    if not email:
+        return templates.TemplateResponse("reset_password.html", {
+            "request": request,
+            "invalid": True,
+            "error": "This reset link is invalid or has expired."
+        })
+    csrf = generate_csrf_token()
+    response = templates.TemplateResponse("reset_password.html", {
+        "request": request,
+        "token": token,
+        "invalid": False,
+        "csrf_token": csrf,
+    })
+    response.set_cookie("csrf_token", csrf, httponly=False, samesite="lax")
+    return response
+
+@app.post("/api/reset-password")
+def reset_password(
+    token: str = Form(...),
+    password: str = Form(...),
+    csrf_token: str = Form(None),
+    request: Request = None,
+    db: Session = Depends(models.get_db)
+):
+    if request.cookies.get("csrf_token") and request.cookies.get("csrf_token") != csrf_token:
+        raise HTTPException(403, "Invalid CSRF token")
+    email = verify_token(token)
+    if not email:
+        raise HTTPException(400, "Invalid or expired reset token")
+    
+    pw_error = validate_password(password)
+    if pw_error:
+        raise HTTPException(400, pw_error)
+    
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+    
+    user.password_hash = hash_password(password)
+    db.commit()
+    return RedirectResponse("/login?reset=1", status_code=303)
 
 # ============== DASHBOARD ==============
 

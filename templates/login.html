@@ -39,6 +39,7 @@
 
             <!-- Login Form -->
             <form class="auth-form" id="login-form" action="/api/login" method="post" novalidate>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="input-group">
                     <label for="email">Email address</label>
                     <div class="input-wrapper">
@@ -64,7 +65,8 @@
             <div class="auth-divider"></div>
 
             <div class="auth-footer">
-                Don't have an account? <a href="/register">Register</a>
+                <p>Don't have an account? <a href="/register">Register</a></p>
+                <p style="margin-top:8px;"><a href="/forgot-password">Forgot password?</a></p>
             </div>
         </div>
     </div>
