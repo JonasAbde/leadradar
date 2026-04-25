@@ -78,7 +78,7 @@ def search_ted(cpv_codes: list, country: str = "DNK", max_results: int = 10):
         "fields": VERIFIED_FIELDS,
         "limit": min(max_results, 250),
         "page": 1,
-        "scope": "ACTIVE",
+        "scope": "LATEST",
     }
     
     resp = requests.post(BASE_URL, json=payload, headers=HEADERS, timeout=30)

@@ -97,7 +97,7 @@ class TEDProvider:
             "fields": VERIFIED_FIELDS,
             "limit": min(limit, 250),
             "page": 1,
-            "scope": "ACTIVE",
+            "scope": "LATEST",  # LATEST = fresh notices (typically last 24h); ACTIVE = all historical
         }
 
         notices = []

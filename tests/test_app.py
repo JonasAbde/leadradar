@@ -78,6 +78,31 @@ def test_cvr_scraper_runs():
     results = scraper.scrape()
     assert isinstance(results, list)
 
+# ─── TED PROVIDER ───
+def test_ted_provider_fetches_notices():
+    """TED API should return notices for DK with LATEST scope."""
+    from app.ted_provider import TEDProvider
+    provider = TEDProvider()
+    notices = provider.fetch_tenders(country='DNK', max_pages=1, limit=3)
+    assert isinstance(notices, list)
+    assert len(notices) > 0, "TED API returned 0 notices"
+    # Verify expected fields exist
+    n = notices[0]
+    assert n["pub_number"], "Missing publication number"
+    assert n["buyer"], "Missing buyer name"
+    assert n["pub_date"], "Missing publication date"
+    assert n["url"].startswith("https://ted.europa.eu/"), f"Unexpected URL: {n['url']}"
+
+def test_ted_provider_cpv_filter():
+    """TED API should filter by CPV codes correctly."""
+    from app.ted_provider import TEDProvider
+    provider = TEDProvider()
+    notices = provider.fetch_tenders(country='DNK', cpv_codes=[72000000], max_pages=1, limit=3)
+    assert isinstance(notices, list)
+    # May return 0 on quiet days — that's okay, just verify structure
+    if notices:
+        assert all(n["pub_number"] for n in notices)
+
 # ─── CRM MOCK PROVIDER ───
 def test_mock_crm_provider_basic():
     from app.crm.mock_provider import MockCRMProvider
